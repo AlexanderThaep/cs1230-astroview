@@ -1,7 +1,7 @@
 #pragma once
 
 #include <QMainWindow>
-#include "glrenderer.h"
+#include "astrorender.h"
 
 class MainWindow : public QWidget
 {
@@ -12,5 +12,5 @@ public:
     ~MainWindow();
 
 private:
-    GLRenderer *glRenderer;
+    AstroRender *astroRender;
 };

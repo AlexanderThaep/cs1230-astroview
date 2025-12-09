@@ -25,13 +25,19 @@ include_directories(src)
 # Specifies .cpp and .h files to be passed to the compiler
 add_executable(${PROJECT_NAME}
     src/main.cpp
-    src/glrenderer.cpp
+    src/astrorender.cpp
     src/mainwindow.cpp
 
-    src/glrenderer.h
+    src/astrorender.h
     src/mainwindow.h
     src/shaderloader.h
-    src/light.h
+
+    src/utils/scenedata.h
+    src/utils/sceneparser.h
+    src/utils/sceneparser.cpp
+    src/camera/camera.h src/camera/camera.cpp
+    src/utils/scene.h src/utils/scene.cpp
+    src/utils/scenefilereader.h src/utils/scenefilereader.cpp
 )
 # Specifies other files
 qt_add_resources(${PROJECT_NAME} "Resources"
