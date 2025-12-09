@@ -30,5 +30,6 @@ int main(int argc, char *argv[])
 
     int return_val = a.exec();
     w.finish();
+
     return return_val;
 }
