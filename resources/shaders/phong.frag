@@ -185,6 +185,93 @@ float marchRay(vec3 ro, vec3 rd, out vec3 hitPos, out int hit)
     return t;
 }
 
+/*
+  NOTE: we need to implement the function such that we know what shape it hits,
+    and so that SceneSDF gives the distance to the closest shape. this way, we can compute
+    lighting. Also, we need to pass the black hole parameters as uniforms to the shader.
+
+struct rayState {
+    vec3 ray_pos;
+    vec3 ray_vel;
+};
+
+vec3 get_accel(vec3 r, vec3 v, float bh_r) {
+    vec3 h = cross(r, v);
+
+    float r_len = length(r);
+    float h_factor = -1.5 * bh_r * dot(h, h);
+    vec3 a = r * (h_factor / pow(r_len, 5));
+
+    return a;
+}
+
+rayState RK4Step(rayState ray_state, float dt, vec3 bh_pos, float bh_r) {
+    vec3 r_t = ray_state.ray_pos - bh_pos;
+    vec3 v_t = ray_state.ray_vel;
+
+    // k factors and resulting interpolations. Note k_1r = v_t, k_2r = v_1_2...
+    vec3 k_1v = get_accel(r_t, v_t, bh_r);
+    vec3 r_1_2 = r_t + v_t * dt / 2.f;
+    vec3 v_1_2 = v_t + k_1v * dt / 2.f;
+
+    vec3 k_2v = get_accel(r_1_2, v_1_2, bh_r);
+    vec3 r_2_3 = r_1_2 + v_1_2 * dt / 2.f;
+    vec3 v_2_3 = v_1_2 + k_2v * dt / 2.f;
+
+    vec3 k_3v = get_accel(r_2_3, v_2_3, bh_r);
+    vec3 r_3_4 = r_2_3 + v_2_3 * dt;
+    vec3 v_3_4 = v_2_3 + k_3v * dt;
+
+    vec3 k_4v = get_accel(r_3_4, v_3_4, bh_r);
+
+    r_t += dt / 6.f * (v_t + 2.f * v_1_2 + 2.f * v_2_3 + v_3_4);
+    v_t += dt / 6.f * (k_1v + 2.f * k_2v + 2.f * k_3v + k_4v);
+
+    rayState next_ray_state;
+    next_ray_state.ray_pos = r_t + bh_pos;
+    next_ray_state.ray_vel = v_t;
+
+    return next_ray_state;
+}
+
+float marchRay(vec3 ro, vec3 rd, vec3 bh_pos, float bh_r, out vec3 hitPos, out int hit)
+{
+    const float MAX_DIST = 100.0;
+    const float EPS = 0.0005;
+    const int MAX_STEPS = 350;
+    const float LIPSCHITZ_C = 1.1;
+
+    rayState ray_state;
+    ray_state.ray_pos = ro;
+    ray_state.ray_vel = rd;
+
+
+    float t = 0.0;
+    for (int i = 0; i < MAX_STEPS; i++) {
+        float d = sceneSDF(ray_state.ray_pos);
+
+        if (d < EPS) {
+            hit = 1;
+            hitPos = ray_state.ray_pos;
+
+            // Linear approx in short distances
+            return t + d;
+        }
+
+        if (t > MAX_DIST) break;
+
+        float step = min(EPS, d / LIPSCHITZ_C);
+        vec3 prev_pos = ray_state.ray_pos;
+        ray_state = RK4Step(ray_state, step, bh_pos, bh_r);
+
+        t += length(prev_pos - ray_state.ray_pos);
+    }
+
+    hit = 0;
+    return t;
+}
+*/
+
 vec3 computeLight(SceneLightData light, vec3 pos, vec3 normal) {
     vec3 N = normalize(normal);
     vec3 V = normalize(uCameraPos - pos);
@@ -257,6 +344,9 @@ void main() {
     vec3 hitPos;
     int hit;
     marchRay(ro, rd, hitPos, hit);
+
+    // Uncomment for black hole raytracing
+    //marchRay(ro, rd, bh_pos, bh_r, hitPos, hit)
 
     if (hit == 1) {
         vec3 N = estimateNormal(hitPos);
