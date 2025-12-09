@@ -1,52 +1,46 @@
-#pragma once
-
+#ifndef CAMERA_H
+#define CAMERA_H
+#include "utils/scenedata.h"
 #include <glm/glm.hpp>
-#include <utils/sceneparser.h>
 
-// A class representing a virtual camera.
-
-// Feel free to make your own design choices for Camera class, the functions below are all optional / for your convenience.
-// You can either implement and use these getters, or make your own design.
-// If you decide to make your own design, feel free to delete these as TAs won't rely on them to grade your assignments.
 
 class Camera {
-private:
-    glm::mat4 c_viewMatrix;
-    glm::mat4 c_inverseViewMatrix;
-    glm::mat4 c_projectionMatrix;
-
-    float c_aspectRatio;
-    float c_heightAngle;
-    float c_tanHalfVAngle;
-    float c_tanHalfHAngle;
-
-    glm::vec3 c_position;
-
 public:
-    Camera(SceneCameraData &cameraData);
-    void update(SceneCameraData &cameraData, float ar);
-    void updateView(SceneCameraData &cameraData);
-
     // Returns the view matrix for the current camera settings.
-    // You might also want to define another function that return the inverse of the view matrix.
     glm::mat4 getViewMatrix() const;
+
+    //Returns the inverse of the view matrix
     glm::mat4 getInverseViewMatrix() const;
 
-    // Returns the projection matrix for the current camera settings.
+    //Returns the projection matrix
     glm::mat4 getProjectionMatrix() const;
 
-    // Returns the aspect ratio of the camera.
-    float getAspectRatio() const;
+    //Returns the inverse of the projective matrix
+    glm::mat4 getInverseProjectionMatrix() const;
 
     // Returns the height angle of the camera in RADIANS.
     float getHeightAngle() const;
 
-    // Get camera position in world space
-    glm::vec3 getPosition() const;
+    // Returns the width angle of the camera in RADIANS
+    float getWidthAngle() const;
 
-    // Camera manipulation functions
-    void moveMedial(SceneCameraData &cameraData, float delta);
-    void moveLateral(SceneCameraData &cameraData, float delta);
-    void moveVertical(SceneCameraData &cameraData, float delta);
-    void rotate(SceneCameraData &cameraData, float deltaX, float deltaY);
+    //Returns the aspect ratio
+    float getAspectRatio() const;
+
+    //Updatest eh new and far
+    void updateNearAndFarPlanes(float near, float far);
+
+    //The scene camera data
+    SceneCameraData cameraData;
+
+    //The current near and far planes
+    float near = -1;
+    float far = -1;
+
+    //The viewPlane with and height
+    float viewPlaneHeight = -1;
+    float viewPlaneWidth = -1;
+
 };
+
+#endif

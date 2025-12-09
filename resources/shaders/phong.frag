@@ -1,10 +1,4 @@
 #version 330 core
-in vec2 UV;
-out vec4 fragColor;
-uniform mat4 uView;
-uniform mat4 uProj;
-uniform vec3 uCameraPos;
-uniform int uShape; //Which shape to render: One of 0 = Mandelbulb, 1 = Menger Sponge, 2 = Julia Quaternion, 3 = Terrain, 4 = Sphere/Torus combo
 
 struct SceneLightData {
     int type;          // 0 = Directional, 1 = Point, 2 = Spot
@@ -16,22 +10,99 @@ struct SceneLightData {
     float angle;       // Spot angle (radians)
 };
 
+struct SceneShapeData {
+    int primitive;     // The type of shape
+    mat4 invCTM;       // inverse of the object's CTM
+    vec3 ambient;      // object material ambient term
+    vec3 diffuse;      // object material diffuse term
+    vec3 specular;     // object material specular term
+    float shininess;   // material shininess
+};
+
+
 const int MAX_LIGHTS = 8;
 uniform SceneLightData lights[MAX_LIGHTS];
 uniform int numLights;
 
-// Material coefficients
+const int MAX_SHAPES = 8;
+uniform SceneShapeData shapes[MAX_SHAPES];
+uniform int numShapes;
+
+//Shape type definitions
+const int CUBE = 0;
+const int CONE = 1;
+const int CYLINDER = 2;
+const int SPHERE = 3;
+const int MANDEL_BULB = 4;
+const int MENGER = 5;
+const int JULIA = 6;
+const int TERRAIN = 7;
+const int SPHERE_TORUS = 8;
+
+
+//Light type definitions
+const int LIGHT_DIRECTIONAL = 0;
+const int LIGHT_POINT = 1;
+const int LIGHT_SPOT = 2;
+
+in vec2 UV;
+out vec4 fragColor;
+uniform mat4 uView;
+uniform mat4 uProj;
+uniform vec3 uCameraPos;
+
+// Global light coefficients
 uniform float ka; // ambient
 uniform float kd; // diffuse
 uniform float ks; // specular
 
-// Material properties
-uniform vec3 mat_ambient;
-uniform vec3 mat_diffuse;
-uniform vec3 mat_specular;
-uniform float mat_shininess;
 
 //////////// Fractal SDF definitions ////////////////
+// Cube: side length 1, centered at origin
+float cubeSDF(vec3 p)
+{
+    vec3 d = abs(p) - vec3(0.5);
+    return length(max(d, 0.0)) + min(max(d.x, max(d.y,d.z)), 0.0);
+}
+
+// Sphere: radius 0.5
+float sphereSDF(vec3 p)
+{
+    return length(p) - 0.5;
+}
+
+// Cylinder: height 1, radius 0.5
+float cylinderSDF(vec3 p)
+{
+    vec2 d = abs(vec2(length(p.xz), p.y)) - vec2(0.5, 0.5);
+    return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
+}
+
+// Cone: height 1, bottom radius 0.5
+// Apex at y=+0.5, base at y=-0.5
+float coneSDF(vec3 p)
+{
+    // Shift so apex at +0.5, base at -0.5
+      p.y += 0.5;
+
+      float radius = 0.5;
+      float height = 1.0;
+
+      // c = (sinθ, cosθ)
+      vec2 c = vec2(radius / height, sqrt(1.0 - pow(radius / height, 2.0)));
+
+      vec2 q = height *vec2(c.x/c.y,-1.0);
+
+       vec2 w = vec2( length(p.xz), p.y );
+       vec2 a = w - q*clamp( dot(w,q)/dot(q,q), 0.0, 1.0 );
+       vec2 b = w - q*vec2( clamp( w.x/q.x, 0.0, 1.0 ), 1.0 );
+       float k = sign( q.y );
+       float d = min(dot( a, a ),dot(b, b));
+       float s = max( k*(w.x*q.y-w.y*q.x),k*(w.y-q.y)  );
+       return sqrt(d)*sign(s);
+
+}
+
 
 // Mandel buld fractral
 float mandelbulbDE(vec3 pos)
@@ -133,195 +204,153 @@ float sphereTorusSDF(vec3 p)
     return min(sphere, t);
 }
 
-float sceneSDF(vec3 p)
+vec2 sceneSDF(vec3 p)
 {
-    switch (uShape) {
-        case 0: return mandelbulbDE(p);
-        case 1: return mengerSDF(p);
-        case 2: return juliaDE(p);
-        case 3: return terrainSDF(p);
-        case 4: return sphereTorusSDF(p);
+    float minDist = 1e9;
+    int shapeIndex = -1;
+
+    for (int i = 0; i < numShapes; i++) {
+        vec3 local = (shapes[i].invCTM * vec4(p, 1.0)).xyz;
+
+        float d;
+        switch (shapes[i].primitive) {
+            case SPHERE:
+                d = sphereSDF(local);
+                break;
+            case CUBE:
+                d = cubeSDF(local);
+                break;
+            case CYLINDER:
+                d = cylinderSDF(local);
+                break;
+            case CONE:
+                d = coneSDF(local);
+                break;
+            case MANDEL_BULB:
+                d = mandelbulbDE(local);
+                break;
+            case MENGER:
+                d = mengerSDF(local);
+                break;
+            case JULIA:
+                d = juliaDE(local);
+                break;
+            case TERRAIN:
+                d = terrainSDF(local);
+                break;
+            case SPHERE_TORUS:
+                d = sphereTorusSDF(local);
+                break;
+        }
+
+        if (d < minDist) {
+            minDist = d;
+            shapeIndex = i;
+        }
     }
-    return mandelbulbDE(p); // fallback
+
+    return vec2(minDist, shapeIndex);
 }
+
 
 //Estimates the normals for lighting calculation
 vec3 estimateNormal(vec3 p)
 {
     float e = 0.0005;
+
     return normalize(vec3(
-        sceneSDF(p + vec3(e,0,0)) - sceneSDF(p - vec3(e,0,0)),
-        sceneSDF(p + vec3(0,e,0)) - sceneSDF(p - vec3(0,e,0)),
-        sceneSDF(p + vec3(0,0,e)) - sceneSDF(p - vec3(0,0,e))
+        sceneSDF(p + vec3(e,0,0)).x -
+        sceneSDF(p - vec3(e,0,0)).x,
+        sceneSDF(p + vec3(0,e,0)).x -
+        sceneSDF(p - vec3(0,e,0)).x,
+        sceneSDF(p + vec3(0,0,e)).x -
+        sceneSDF(p - vec3(0,0,e)).x
     ));
 }
 
-//Ray marching
-float marchRay(vec3 ro, vec3 rd, out vec3 hitPos, out int hit)
+float marchRay(vec3 ro, vec3 rd, out vec3 hitPos, out int hitShape)
 {
     const float MAX_DIST = 100.0;
     const float EPS = 0.0005;
     const int MAX_STEPS = 350;
 
     float t = 0.0;
+    hitShape = -1;   // default: no hit
+
     for (int i = 0; i < MAX_STEPS; i++) {
+
         vec3 p = ro + rd * t;
-        float d = sceneSDF(p);
+
+        // sceneSDF returns: vec2(d, shapeIndex)
+        vec2 res = sceneSDF(p);
+        float d = res.x;
 
         if (d < EPS) {
-            hit = 1;
-            hitPos = p;
+            hitPos   = p;
+            hitShape = int(res.y);   // store which shape was hit
             return t;
         }
 
-        if (t > MAX_DIST) break;
+        if (t > MAX_DIST)
+            break;
 
-        float step = d * 0.7;
-        step = max(step, 0.0005);
+        // standard safe marching step
+        float step = max(d * 0.7, 0.0005);
         t += step;
     }
 
-    hit = 0;
+    // no hit
+    hitShape = -1;
+    hitPos = ro + rd * t;
     return t;
 }
 
-/*
-  NOTE: we need to implement the function such that we know what shape it hits,
-    and so that SceneSDF gives the distance to the closest shape. this way, we can compute
-    lighting. Also, we need to pass the black hole parameters as uniforms to the shader.
-
-struct rayState {
-    vec3 ray_pos;
-    vec3 ray_vel;
-};
-
-vec3 get_accel(vec3 r, vec3 v, float bh_r) {
-    vec3 h = cross(r, v);
-
-    float r_len = length(r);
-    float h_factor = -1.5 * bh_r * dot(h, h);
-    vec3 a = r * (h_factor / pow(r_len, 5));
-
-    return a;
-}
-
-rayState RK4Step(rayState ray_state, float dt, vec3 bh_pos, float bh_r) {
-    vec3 r_t = ray_state.ray_pos - bh_pos;
-    vec3 v_t = ray_state.ray_vel;
-
-    // k factors and resulting interpolations. Note k_1r = v_t, k_2r = v_1_2...
-    vec3 k_1v = get_accel(r_t, v_t, bh_r);
-    vec3 r_1_2 = r_t + v_t * dt / 2.f;
-    vec3 v_1_2 = v_t + k_1v * dt / 2.f;
-
-    vec3 k_2v = get_accel(r_1_2, v_1_2, bh_r);
-    vec3 r_2_3 = r_1_2 + v_1_2 * dt / 2.f;
-    vec3 v_2_3 = v_1_2 + k_2v * dt / 2.f;
-
-    vec3 k_3v = get_accel(r_2_3, v_2_3, bh_r);
-    vec3 r_3_4 = r_2_3 + v_2_3 * dt;
-    vec3 v_3_4 = v_2_3 + k_3v * dt;
-
-    vec3 k_4v = get_accel(r_3_4, v_3_4, bh_r);
-
-    r_t += dt / 6.f * (v_t + 2.f * v_1_2 + 2.f * v_2_3 + v_3_4);
-    v_t += dt / 6.f * (k_1v + 2.f * k_2v + 2.f * k_3v + k_4v);
-
-    rayState next_ray_state;
-    next_ray_state.ray_pos = r_t + bh_pos;
-    next_ray_state.ray_vel = v_t;
-
-    return next_ray_state;
-}
-
-float marchRay(vec3 ro, vec3 rd, vec3 bh_pos, float bh_r, out vec3 hitPos, out int hit)
-{
-    const float MAX_DIST = 100.0;
-    const float EPS = 0.0005;
-    const int MAX_STEPS = 350;
-    const float LIPSCHITZ_C = 1.1;
-
-    rayState ray_state;
-    ray_state.ray_pos = ro;
-    ray_state.ray_vel = rd;
-
-
-    float t = 0.0;
-    for (int i = 0; i < MAX_STEPS; i++) {
-        float d = sceneSDF(ray_state.ray_pos);
-
-        if (d < EPS) {
-            hit = 1;
-            hitPos = ray_state.ray_pos;
-
-            // Linear approx in short distances
-            return t + d;
-        }
-
-        if (t > MAX_DIST) break;
-
-        float step = min(EPS, d / LIPSCHITZ_C);
-        vec3 prev_pos = ray_state.ray_pos;
-        ray_state = RK4Step(ray_state, step, bh_pos, bh_r);
-
-        t += length(prev_pos - ray_state.ray_pos);
-    }
-
-    hit = 0;
-    return t;
-}
-*/
-
-vec3 computeLight(SceneLightData light, vec3 pos, vec3 normal) {
+vec3 computeLight(SceneLightData light, vec3 pos, vec3 normal, int shapeIndex) {
     vec3 N = normalize(normal);
     vec3 V = normalize(uCameraPos - pos);
     vec3 L;
     float attenuation = 1.0;
 
-    if (light.type == 0) {
+    if (light.type == LIGHT_DIRECTIONAL) { // directional
         L = normalize(-light.dir.xyz);
     } else {
         L = normalize(light.pos.xyz - pos);
         float dist = length(light.pos.xyz - pos);
-
         attenuation = 1.0 / (light.function.x +
                              light.function.y * dist +
                              light.function.z * dist * dist);
 
-        if (light.type == 2) {
+        if (light.type == LIGHT_SPOT) { // spot
             float theta = dot(normalize(-L), normalize(light.dir.xyz));
             float cosInner = cos(light.angle - light.penumbra);
             float cosOuter = cos(light.angle);
-            float intensity = clamp((theta - cosOuter) / (cosInner - cosOuter),
-                                    0.0, 1.0);
+            float intensity = clamp((theta - cosOuter) / (cosInner - cosOuter), 0.0, 1.0);
             attenuation *= intensity;
         }
     }
 
     // Diffuse
     float diff = max(dot(N, L), 0.0);
-    vec3 diffuse = kd * diff * mat_diffuse;
+    vec3 diffuse = kd * diff * shapes[shapeIndex].diffuse;
 
     // Specular
     vec3 specular = vec3(0.0);
-    if(mat_shininess > 0.0) {
+    if (shapes[shapeIndex].shininess > 0.0) {
         vec3 R = reflect(-L, N);
-        float spec = pow(max(dot(R, V), 0.0), mat_shininess);
-        specular = ks * spec * mat_specular;
+        float spec = pow(max(dot(R, V), 0.0), shapes[shapeIndex].shininess);
+        specular = ks * spec * shapes[shapeIndex].specular;
     }
 
     return attenuation * light.color * (diffuse + specular);
 }
 
-// Phong lighting
-vec3 phongLighting(vec3 p, vec3 N)
-{
-    // Global ambient (independent of lights)
-    vec3 color = ka * mat_ambient;
+vec3 phongLighting(vec3 p, vec3 N, int shapeIndex) {
+    // Global ambient (shape-dependent)
+    vec3 color = ka * shapes[shapeIndex].ambient;
 
-    // Add diffuse + spec per light
+    // Add diffuse + specular per light
     for (int i = 0; i < numLights; ++i) {
-        color += computeLight(lights[i], p, N);
+        color += computeLight(lights[i], p, N, shapeIndex);
     }
 
     return color;
@@ -342,18 +371,14 @@ void main() {
 
     // Ray march
     vec3 hitPos;
-    int hit;
-    marchRay(ro, rd, hitPos, hit);
+    int shapeIndex;
+    marchRay(ro, rd, hitPos, shapeIndex);
 
-    // Uncomment for black hole raytracing
-    //marchRay(ro, rd, bh_pos, bh_r, hitPos, hit)
-
-    if (hit == 1) {
-        vec3 N = estimateNormal(hitPos);
-        vec3 color = phongLighting(hitPos, N);
-        fragColor = vec4(color, 1.0);
-
+    if (shapeIndex != -1) {
+       vec3 N = estimateNormal(hitPos);
+       vec3 color = phongLighting(hitPos, N, shapeIndex);
+       fragColor = vec4(color, 1.0);
     } else {
-        fragColor = vec4(0.0, 0.0, 0.0, 1.0);
+       fragColor = vec4(vec3(0.0), 1.0);
     }
 }

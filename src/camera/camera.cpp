@@ -1,152 +1,75 @@
 #include "camera.h"
-#include "settings.h"
-#include <utils/sceneparser.h>
 
-Camera::Camera(SceneCameraData &cameraData) {};
-
-void Camera::moveMedial(SceneCameraData &cameraData, float delta)
-{
-    cameraData.pos += cameraData.look * delta;
-    updateView(cameraData);
-}
-
-void Camera::moveLateral(SceneCameraData &cameraData, float delta)
-{
-    glm::vec4 right = glm::vec4(glm::normalize(glm::cross(glm::vec3(cameraData.look), glm::vec3(cameraData.up))), 0.0f);
-
-    cameraData.pos += right * delta;
-    updateView(cameraData);
-}
-
-void Camera::moveVertical(SceneCameraData &cameraData, float delta)
-{
-    cameraData.pos += glm::vec4(0.0f, 1.0f, 0.0f, 0.0f) * delta;
-    updateView(cameraData);
-}
-
-void Camera::rotate(SceneCameraData &cameraData, float deltaX, float deltaY)
-{
-    const glm::vec3 yAxis = glm::vec3(0.0f, 1.0f, 0.0f);
-    glm::vec3 look = glm::vec3(cameraData.look);
+glm::mat4 Camera::getViewMatrix() const {
+    glm::vec3 pos = glm::vec3(cameraData.pos);
+    glm::vec3 look = glm::vec3(cameraData.look);;
     glm::vec3 up = glm::vec3(cameraData.up);
-    glm::vec3 right = glm::normalize(glm::cross(look, up));
 
-    look =
-        glm::normalize(look * glm::cos(deltaY)
-                    + glm::cross(right, look) * glm::sin(deltaY)
-                    + right * glm::dot(right, look) * (1.0f - glm::cos(deltaY)));
-
-    up =
-        glm::normalize(up * glm::cos(deltaY)
-                    + glm::cross(right, up) * glm::sin(deltaY)
-                    + right * glm::dot(right, up) * (1.0f - glm::cos(deltaY)));
-
-    cameraData.look =
-        glm::normalize(glm::vec4(look * glm::cos(deltaX)
-                    + glm::cross(yAxis, look) * glm::sin(deltaX)
-                    + yAxis * glm::dot(yAxis, look) * (1.0f - glm::cos(deltaX)), 0.0f));
-
-    cameraData.up =
-        glm::normalize(glm::vec4(up * glm::cos(deltaX)
-                    + glm::cross(yAxis, up) * glm::sin(deltaX)
-                    + yAxis * glm::dot(yAxis, up) * (1.0f - glm::cos(deltaX)), 0.0f));
-
-    updateView(cameraData);
-}
-
-void Camera::updateView(SceneCameraData &cameraData)
-{
-    glm::mat3 lpu = glm::mat3(
-        glm::vec3(cameraData.look),
-        glm::vec3(cameraData.pos),
-        glm::vec3(cameraData.up));
-
-    glm::vec3 w = -glm::normalize(lpu[0]);
-    glm::vec3 v = glm::normalize(lpu[2] - (glm::dot(lpu[2], w) * w));
+    //find u, v, w
+    glm::vec3 w = -glm::normalize(look);
+    glm::vec3 v = glm::normalize(up - glm::dot(up, w) * w);
     glm::vec3 u = glm::cross(v, w);
 
-    glm::mat4 rotation = glm::mat4(
-        glm::vec4(u.x, v.x, w.x, 0.0f),
-        glm::vec4(u.y, v.y, w.y, 0.0f),
-        glm::vec4(u.z, v.z, w.z, 0.0f),
-        glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-    );
+    //construct matrices
+    glm::mat4 m_translate = glm::mat4(glm::vec4(1., 0., 0., 0.),
+                                      glm::vec4(0., 1., 0., 0.),
+                                      glm::vec4(0., 0., 1., 0.),
+                                      glm::vec4(-pos[0], -pos[1], -pos[2], 1.));
 
-    glm::mat4 translation = glm::mat4(
-        glm::vec4(1.0f, 0.0f, 0.0f, 0.0f),
-        glm::vec4(0.0f, 1.0f, 0.0f, 0.0f),
-        glm::vec4(0.0f, 0.0f, 1.0f, 0.0f),
-        glm::vec4(-lpu[1].x, -lpu[1].y, -lpu[1].z, 1.0f)
-    );
+    glm::mat4 m_rotate = glm::mat4(u[0], v[0], w[0], 0.,
+                                   u[1], v[1], w[1], 0.,
+                                   u[2], v[2], w[2], 0.,
+                                   0., 0., 0., 1.);
 
-    this->c_position = lpu[1];
-
-    this->c_viewMatrix = rotation * translation;
-    this->c_inverseViewMatrix = glm::inverse(this->c_viewMatrix);
+    return m_rotate * m_translate;
 }
 
-void Camera::update(SceneCameraData &cameraData, float ar)
-{
-    this->c_aspectRatio = ar;
-    this->c_heightAngle = cameraData.heightAngle;
-    this->c_tanHalfVAngle = glm::tan(this->c_heightAngle / 2.0f);
-    this->c_tanHalfHAngle = this->c_tanHalfVAngle * ar;
-
-    float far = settings.farPlane;
-    float near = settings.nearPlane;
-    float c = -near / far;
-
-    // Projection
-    glm::mat4 z_scale = glm::mat4(
-        glm::vec4(1.0f, 0.0f, 0.0f, 0.0f),
-        glm::vec4(0.0f, 1.0f, 0.0f, 0.0f),
-        glm::vec4(0.0f, 0.0f, -2.0f, 0.0f),
-        glm::vec4(0.0f, 0.0f, -1.0f, 1.0f)
-    );
-
-    glm::mat4 unhinging = glm::mat4(
-        glm::vec4(1.0f, 0.0f, 0.0f, 0.0f),
-        glm::vec4(0.0f, 1.0f, 0.0f, 0.0f),
-        glm::vec4(0.0f, 0.0f, 1.0f / (1.0f + c), -1.0f),
-        glm::vec4(0.0f, 0.0f, -c / (1.0f + c), 0.0f)
-    );
-
-    glm::mat4 projection = glm::mat4(
-        glm::vec4(1.0f / (far * this->c_tanHalfHAngle), 0.0f, 0.0f, 0.0f),
-        glm::vec4(0.0f, 1.0f / (far * this->c_tanHalfVAngle), 0.0f, 0.0f),
-        glm::vec4(0.0f, 0.0f, 1.0f / far, 0.0f),
-        glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)
-    );
-
-    this->c_projectionMatrix = z_scale * unhinging * projection;
+glm::mat4 Camera::getInverseViewMatrix() const {
+    return glm::inverse(getViewMatrix());
 }
 
-glm::vec3 Camera::getPosition() const
-{
-    return this->c_position;
+//Returns the projection matrix
+glm::mat4 Camera::getProjectionMatrix() const {
+    float theta_w = getWidthAngle();
+    float theta_h = getHeightAngle();
+    float c = -near/far;
+
+    glm::mat4 scale = glm::mat4( 1.f / (far * tan(theta_w / 2.f)), 0, 0, 0,
+                                0, 1.f / (far * tan(theta_h / 2.f)), 0, 0,
+                                0, 0, 1.f / far, 0,
+                                0, 0, 0, 1);
+
+    glm::mat4 mpp = glm::mat4(1, 0, 0, 0,
+                              0, 1, 0, 0,
+                              0, 0, 1.f / (1.f + c), -1.f,
+                              0, 0, -c / (1.f + c), 0.f);
+
+    glm::mat4 transform = glm::mat4(1, 0, 0, 0,
+                                    0, 1, 0, 0,
+                                    0, 0, -2, 0,
+                                    0, 0, -1, 1);
+
+    return transform * mpp * scale;
 }
 
-glm::mat4 Camera::getViewMatrix() const
-{
-    return this->c_viewMatrix;
+//Returns the inverse of the projective matrix
+glm::mat4 Camera::getInverseProjectionMatrix() const {
+    return glm::inverse(getProjectionMatrix());
 }
 
-glm::mat4 Camera::getInverseViewMatrix() const
-{
-    return this->c_inverseViewMatrix;
+void Camera::updateNearAndFarPlanes(float near, float far) {
+    this->near = near;
+    this->far = far;
 }
 
-glm::mat4 Camera::getProjectionMatrix() const
-{
-    return this->c_projectionMatrix;
+float Camera::getAspectRatio() const {
+    return viewPlaneWidth / viewPlaneHeight;
 }
 
-float Camera::getAspectRatio() const
-{
-    return this->c_aspectRatio;
+float Camera::getHeightAngle() const {
+    return cameraData.heightAngle;
 }
 
-float Camera::getHeightAngle() const
-{
-    return this->c_heightAngle;
+float Camera::getWidthAngle() const {
+    return 2.0f * atan(getAspectRatio() * tan(getHeightAngle() / 2.0f));
 }

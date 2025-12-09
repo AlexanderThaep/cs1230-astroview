@@ -1,5 +1,5 @@
-#pragma once
-
+#ifndef SCENEFILEREADER_H
+#define SCENEFILEREADER_H
 #include "scenedata.h"
 
 #include <vector>
@@ -48,3 +48,6 @@ private:
     SceneNode *m_root;
     std::vector<SceneNode *> m_nodes;
 };
+
+#endif // SCENEFILEREADER_H
+

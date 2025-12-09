@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SCENEDATA_H
+#define SCENEDATA_H
 
 #include <vector>
 #include <string>
@@ -7,9 +8,9 @@
 
 // Enum of the types of virtual lights that might be in the scene
 enum class LightType {
-    LIGHT_POINT,
-    LIGHT_DIRECTIONAL,
-    LIGHT_SPOT,
+    LIGHT_DIRECTIONAL = 0,
+    LIGHT_POINT = 1,
+    LIGHT_SPOT = 2
 };
 
 // Enum of the types of primitives that might be in the scene
@@ -18,8 +19,8 @@ enum class PrimitiveType {
     PRIMITIVE_CONE,
     PRIMITIVE_CYLINDER,
     PRIMITIVE_SPHERE,
-    PRIMITIVE_MESH,
-    PRIMITIVE_TRI
+    PRIMITIVE_MESH
+
 };
 
 // Enum of the types of transformations that can be applied
@@ -81,8 +82,8 @@ struct SceneCameraData {
     glm::vec4 up;
 
     float heightAngle; // The height angle of the camera in RADIANS
-    float aperture;    // I'm not doing this
-    float focalLength; // Nope, not doing it
+    float aperture;    // Only applicable for depth of field
+    float focalLength; // Only applicable for depth of field
 };
 
 // Struct which contains data for texture mapping files
@@ -167,3 +168,5 @@ struct SceneNode {
     std::vector<SceneLight*> lights;
     std::vector<SceneNode*> children;
 };
+
+#endif // SCENEDATA_H

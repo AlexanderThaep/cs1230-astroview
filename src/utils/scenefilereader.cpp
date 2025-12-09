@@ -13,9 +13,9 @@
 
 #define ERROR_AT(e) "error at line " << e.lineNumber() << " col " << e.columnNumber() << ": "
 #define PARSE_ERROR(e) std::cout << ERROR_AT(e) << "could not parse <" << e.tagName().toStdString() \
-                                 << ">" << std::endl
+<< ">" << std::endl
 #define UNSUPPORTED_ELEMENT(e) std::cout << ERROR_AT(e) << "unsupported element <" \
-                                         << e.tagName().toStdString() << ">" << std::endl;
+       << e.tagName().toStdString() << ">" << std::endl;
 
 // Students, please ignore this file.
 ScenefileReader::ScenefileReader(const std::string &name) {
@@ -807,8 +807,8 @@ bool ScenefileReader::parseGroups(const QJsonValue &groups, SceneNode *parent) {
 bool ScenefileReader::parsePrimitive(const QJsonObject &prim, SceneNode *node) {
     QStringList requiredFields = {"type"};
     QStringList optionalFields = {
-        "meshFile", "ambient", "diffuse", "specular", "reflective", "transparent", "shininess", "ior",
-        "blend", "textureFile", "textureU", "textureV", "bumpMapFile", "bumpMapU", "bumpMapV"};
+                                  "meshFile", "ambient", "diffuse", "specular", "reflective", "transparent", "shininess", "ior",
+                                  "blend", "textureFile", "textureU", "textureV", "bumpMapFile", "bumpMapU", "bumpMapV"};
 
     QStringList allFields = requiredFields + optionalFields;
     for (auto field : prim.keys()) {

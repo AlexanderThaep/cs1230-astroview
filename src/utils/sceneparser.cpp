@@ -2,105 +2,82 @@
 #include "scenefilereader.h"
 #include <glm/gtx/transform.hpp>
 
-#include "objparser.h"
-
 #include <chrono>
 #include <iostream>
 
-void populateRenderData(glm::mat4 ctm, SceneNode *prevNode, RenderData &renderData)
-{
-    if (!prevNode) return;
-
-    for (SceneTransformation *t : prevNode->transformations) {
-        switch (t->type) {
-        case TransformationType::TRANSFORMATION_TRANSLATE:
-            ctm = glm::translate(ctm, t->translate);
-            break;
-
-        case TransformationType::TRANSFORMATION_SCALE:
-            ctm = glm::scale(ctm, t->scale);
-            break;
-
-        case TransformationType::TRANSFORMATION_ROTATE:
-            ctm = glm::rotate(ctm, t->angle, t->rotate);
-            break;
-
-        case TransformationType::TRANSFORMATION_MATRIX:
-            ctm = ctm * t->matrix;
-            break;
-        }
-    }
-
-    glm::mat4 invCTM = glm::inverse(ctm);
-    glm::mat3 invCTMT = glm::transpose((glm::mat3(invCTM)));
-
-    for (SceneNode *n : prevNode->children) {
-        populateRenderData(ctm, n, renderData);
-    }
-
-    int count = 0;
-    for (SceneLight *l : prevNode->lights) {
-        if (count > 8) break;
-        glm::vec3 light_dir = glm::vec3(l->dir);
-        SceneLightData d = {
-            .id = l->id,
-            .type = l->type,
-            .color = l->color,
-            .function = l->function,
-            .penumbra = l->penumbra,
-            .angle = l->angle,
-            .width = l->width,
-            .height = l->height,
-        };
-
-        d.pos = ctm * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-        d.dir = glm::normalize(ctm * glm::vec4(light_dir, 0.0f));
-
-        renderData.lights.push_back(d);
-        count++;
-    }
-
-    for (ScenePrimitive *p : prevNode->primitives) {
-
-        RenderShapeData d = {
-            .primitive = *p,
-            .ctm = ctm,
-            .invCTM = invCTM,
-            .invCTMT = invCTMT,
-            .vertexCount = 0,
-            .param1 = 1,
-            .param2 = 1,
-            .vbo = 0,
-            .vao = 0
-        };
-
-        d.worldPos = ctm * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-        renderData.shapes.push_back(d);
-    }
-}
-
-bool SceneParser::parse(std::string filepath, RenderData &renderData)
-{
+bool SceneParser::parse(std::string filepath, RenderData &renderData) {
     ScenefileReader fileReader = ScenefileReader(filepath);
     bool success = fileReader.readJSON();
     if (!success) {
         return false;
     }
 
-    using Clock = std::chrono::high_resolution_clock;
-    auto t0 = Clock::now();
-
     renderData.globalData = fileReader.getGlobalData();
     renderData.cameraData = fileReader.getCameraData();
-
-    renderData.lights.clear();
     renderData.shapes.clear();
-
-    populateRenderData(glm::mat4(1.0f), fileReader.getRootNode(), renderData);
-
-    auto t1 = Clock::now();
-    double ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
-    std::cout << "Parse time: " << ms << " ms" << std::endl;
-
+    renderData.lights.clear();
+    dfs(fileReader.getRootNode(), glm::mat4(1.), renderData);
     return true;
+}
+
+void SceneParser::dfs(SceneNode* node, glm::mat4 parent_ctm, RenderData &renderData) {
+    if (node == nullptr) return;
+
+    //construct total transformation for node
+    glm::mat4 node_transformations = glm::mat4(1.0f);
+
+    for(auto transformation: node->transformations) {
+        switch (transformation->type) {
+        case TransformationType::TRANSFORMATION_TRANSLATE:
+            node_transformations *= glm::translate(transformation->translate);
+            break;
+
+        case TransformationType::TRANSFORMATION_SCALE:
+            node_transformations *= glm::scale(transformation->scale);
+            break;
+
+        case TransformationType::TRANSFORMATION_ROTATE:
+            node_transformations *= glm::rotate(transformation->angle, transformation->rotate);
+            break;
+
+        case TransformationType::TRANSFORMATION_MATRIX:
+            node_transformations *= transformation->matrix;
+            break;
+
+        default:
+            break;
+        }
+    }
+
+    //Create RenderShapeData for each primitive type
+    auto current_ctm = parent_ctm * node_transformations;
+    for (auto primitive: node->primitives) {
+        RenderShapeData shape;
+        shape.ctm = current_ctm;
+        shape.primitive = *primitive;
+        renderData.shapes.push_back(shape);
+    }
+
+    //Create SceneLightData for each light
+    for (auto light: node->lights) {
+        SceneLightData scene_light;
+        scene_light.type = light->type;
+        scene_light.color = light->color;
+        scene_light.function = light->function;
+        scene_light.pos = current_ctm * glm::vec4(0., 0., 0., 1.);
+        scene_light.dir = current_ctm * light->dir;
+        scene_light.penumbra = light->penumbra;
+        scene_light.angle = light->angle;
+        scene_light.height = light->height;
+        scene_light.width = light->width;
+        renderData.lights.push_back(scene_light);
+
+    }
+
+    //process child nodes
+    for (auto child_node : node->children) {
+        dfs(child_node, current_ctm, renderData);
+    }
+
+
 }
