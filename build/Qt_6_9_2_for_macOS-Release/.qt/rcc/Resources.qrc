@@ -1,0 +1,9 @@
+<RCC>
+  <qresource prefix="/">
+    <file alias="resources/shaders/phong.vert">/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/resources/shaders/phong.vert</file>
+    <file alias="resources/shaders/phong.frag">/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/resources/shaders/phong.frag</file>
+    <file alias="resources/shaders/tonemap.vert">/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/resources/shaders/tonemap.vert</file>
+    <file alias="resources/shaders/tonemap.frag">/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/resources/shaders/tonemap.frag</file>
+  </qresource>
+</RCC>
+

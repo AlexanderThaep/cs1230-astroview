@@ -8,22 +8,21 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtx/transform.hpp"
 
-
 GLRenderer::GLRenderer(QWidget *parent)
-    : QOpenGLWidget(parent),
-    m_ka(0.15f),
-    m_kd(0.85f),
-    m_ks(1.2f),
-    m_angleX(6),
-    m_angleY(0),
-    m_zoom(2.0f),
-    m_hdrFBO(0),
-    m_hdrColorTex(0),
-    m_hdrDepthRBO(0),
-    m_quadVAO(0),
-    m_quadVBO(0),
-    m_phong_shader(0),
-    m_tonemap_shader(0)
+    : QOpenGLWidget(parent)
+    , m_ka(0.15f)
+    , m_kd(0.85f)
+    , m_ks(1.2f)
+    , m_angleX(6)
+    , m_angleY(0)
+    , m_zoom(2.0f)
+    , m_hdrFBO(0)
+    , m_hdrColorTex(0)
+    , m_hdrDepthRBO(0)
+    , m_quadVAO(0)
+    , m_quadVBO(0)
+    , m_phong_shader(0)
+    , m_tonemap_shader(0)
 {
     // initialize matrices
     rebuildMatrices();
@@ -39,17 +38,24 @@ GLRenderer::~GLRenderer()
 void GLRenderer::finish()
 {
     // Delete GL programs
-    if (m_phong_shader) glDeleteProgram(m_phong_shader);
-    if (m_tonemap_shader) glDeleteProgram(m_tonemap_shader);
+    if (m_phong_shader)
+        glDeleteProgram(m_phong_shader);
+    if (m_tonemap_shader)
+        glDeleteProgram(m_tonemap_shader);
 
     // Delete fullscreen quad
-    if (m_quadVBO) glDeleteBuffers(1, &m_quadVBO);
-    if (m_quadVAO) glDeleteVertexArrays(1, &m_quadVAO);
+    if (m_quadVBO)
+        glDeleteBuffers(1, &m_quadVBO);
+    if (m_quadVAO)
+        glDeleteVertexArrays(1, &m_quadVAO);
 
     // Delete HDR framebuffer resources
-    if (m_hdrColorTex) glDeleteTextures(1, &m_hdrColorTex);
-    if (m_hdrDepthRBO) glDeleteRenderbuffers(1, &m_hdrDepthRBO);
-    if (m_hdrFBO) glDeleteFramebuffers(1, &m_hdrFBO);
+    if (m_hdrColorTex)
+        glDeleteTextures(1, &m_hdrColorTex);
+    if (m_hdrDepthRBO)
+        glDeleteRenderbuffers(1, &m_hdrDepthRBO);
+    if (m_hdrFBO)
+        glDeleteFramebuffers(1, &m_hdrFBO);
 }
 
 void GLRenderer::initializeGL()
@@ -70,20 +76,18 @@ void GLRenderer::initializeGL()
     glEnable(GL_CULL_FACE);
 
     // Compile shaders
-    m_phong_shader   = ShaderLoader::createShaderProgram(":/resources/shaders/phong.vert",   ":/resources/shaders/phong.frag");
-    m_tonemap_shader = ShaderLoader::createShaderProgram(":/resources/shaders/tonemap.vert",   ":/resources/shaders/tonemap.frag");
+    m_phong_shader = ShaderLoader::createShaderProgram(":/resources/shaders/phong.vert",
+                                                       ":/resources/shaders/phong.frag");
+    m_tonemap_shader = ShaderLoader::createShaderProgram(":/resources/shaders/tonemap.vert",
+                                                         ":/resources/shaders/tonemap.frag");
 
     // Fullscreen quad: position XY, uv
-    float quadVertices[] = {
-        // pos      // uv
-        -1.0f, -1.0f,  0.0f, 0.0f,
-        1.0f, -1.0f,  1.0f, 0.0f,
-        -1.0f,  1.0f,  0.0f, 1.0f,
+    float quadVertices[] = {// pos      // uv
+                            -1.0f, -1.0f, 0.0f,  0.0f, 1.0f, -1.0f,
+                            1.0f,  0.0f,  -1.0f, 1.0f, 0.0f, 1.0f,
 
-        -1.0f,  1.0f,  0.0f, 1.0f,
-        1.0f, -1.0f,  1.0f, 0.0f,
-        1.0f,  1.0f,  1.0f, 1.0f
-    };
+                            -1.0f, 1.0f,  0.0f,  1.0f, 1.0f, -1.0f,
+                            1.0f,  0.0f,  1.0f,  1.0f, 1.0f, 1.0f};
 
     glGenVertexArrays(1, &m_quadVAO);
     glGenBuffers(1, &m_quadVBO);
@@ -94,24 +98,25 @@ void GLRenderer::initializeGL()
 
     // pos attribute (location 0)
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) 0);
 
     // uv attribute (location 1)
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) (2 * sizeof(float)));
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     // Setup sizes and HDR FBO
-    m_screen_width  = width()  * m_devicePixelRatio;
+    m_screen_width = width() * m_devicePixelRatio;
     m_screen_height = height() * m_devicePixelRatio;
     createHDRFramebuffer(m_screen_width, m_screen_height);
 
     // Set tonemap shader sampler once
     glUseProgram(m_tonemap_shader);
     GLint loc = glGetUniformLocation(m_tonemap_shader, "uHDRTexture");
-    if (loc >= 0) glUniform1i(loc, 0);
+    if (loc >= 0)
+        glUniform1i(loc, 0);
     glUseProgram(0);
 }
 
@@ -119,17 +124,34 @@ void GLRenderer::initializeGL()
 void GLRenderer::createHDRFramebuffer(int w, int h)
 {
     // delete old resources if they exist
-    if (m_hdrColorTex) { glDeleteTextures(1, &m_hdrColorTex); m_hdrColorTex = 0; }
-    if (m_hdrDepthRBO) { glDeleteRenderbuffers(1, &m_hdrDepthRBO); m_hdrDepthRBO = 0; }
-    if (m_hdrFBO)      { glDeleteFramebuffers(1, &m_hdrFBO); m_hdrFBO = 0; }
+    if (m_hdrColorTex) {
+        glDeleteTextures(1, &m_hdrColorTex);
+        m_hdrColorTex = 0;
+    }
+    if (m_hdrDepthRBO) {
+        glDeleteRenderbuffers(1, &m_hdrDepthRBO);
+        m_hdrDepthRBO = 0;
+    }
+    if (m_hdrFBO) {
+        glDeleteFramebuffers(1, &m_hdrFBO);
+        m_hdrFBO = 0;
+    }
 
-    m_screen_width  = w;
+    m_screen_width = w;
     m_screen_height = h;
 
     // Create float color texture (HDR)
     glGenTextures(1, &m_hdrColorTex);
     glBindTexture(GL_TEXTURE_2D, m_hdrColorTex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, m_screen_width, m_screen_height, 0, GL_RGBA, GL_FLOAT, nullptr);
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 GL_RGBA16F,
+                 m_screen_width,
+                 m_screen_height,
+                 0,
+                 GL_RGBA,
+                 GL_FLOAT,
+                 nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     // Clamp to edge to avoid wrap seams
@@ -182,13 +204,15 @@ void GLRenderer::renderSceneHDR()
     glUniform1i(glGetUniformLocation(m_phong_shader, "uShape"), shape);
 
     // Adjust camera distance per-shape
-    switch(shape) {
+    switch (shape) {
     case 1:
         shapeZoomMultiplier = 1.4f;
         break;
 
     case 3:
-        m_view = glm::lookAt(glm::vec3(0.0f, 5.0f, -10.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        m_view = glm::lookAt(glm::vec3(0.0f, 5.0f, -10.0f),
+                             glm::vec3(0.0f, 0.0f, 0.0f),
+                             glm::vec3(0.0f, 1.0f, 0.0f));
         shapeZoomMultiplier = 3.f;
         break;
 
@@ -205,46 +229,52 @@ void GLRenderer::renderSceneHDR()
     glUniformMatrix4fv(locProj, 1, GL_FALSE, &m_proj[0][0]);
 
     // Upload camera pos for shaders
-    glm::vec3 camPos = glm::vec3(glm::inverse(m_view) * glm::vec4(0,0,0,1));
+    glm::vec3 camPos = glm::vec3(glm::inverse(m_view) * glm::vec4(0, 0, 0, 1));
     camPos *= shapeZoomMultiplier;
     GLuint locCam = glGetUniformLocation(m_phong_shader, "uCameraPos");
     glUniform3fv(locCam, 1, &camPos[0]);
-    glUniform1i(glGetUniformLocation(m_phong_shader, "numLights"), (GLint)lights.size());
+    glUniform1i(glGetUniformLocation(m_phong_shader, "numLights"), (GLint) lights.size());
 
     for (int i = 0; i < lights.size(); i++) {
         std::string base = "lights[" + std::to_string(i) + "].";
         glUniform1i(glGetUniformLocation(m_phong_shader, (base + "type").c_str()), lights[i].type);
-        glUniform3fv(glGetUniformLocation(m_phong_shader, (base + "color").c_str()), 1, &lights[i].color[0]);
-        glUniform3fv(glGetUniformLocation(m_phong_shader, (base + "function").c_str()), 1, &lights[i].function[0]);
-        glUniform4fv(glGetUniformLocation(m_phong_shader, (base + "pos").c_str()), 1, &lights[i].pos[0]);
-        glUniform4fv(glGetUniformLocation(m_phong_shader, (base + "dir").c_str()), 1, &lights[i].dir[0]);
-        glUniform1f(glGetUniformLocation(m_phong_shader, (base + "penumbra").c_str()), lights[i].penumbra);
-        glUniform1f(glGetUniformLocation(m_phong_shader, (base + "angle").c_str()),lights[i].angle);
+        glUniform3fv(glGetUniformLocation(m_phong_shader, (base + "color").c_str()),
+                     1,
+                     &lights[i].color[0]);
+        glUniform3fv(glGetUniformLocation(m_phong_shader, (base + "function").c_str()),
+                     1,
+                     &lights[i].function[0]);
+        glUniform4fv(glGetUniformLocation(m_phong_shader, (base + "pos").c_str()),
+                     1,
+                     &lights[i].pos[0]);
+        glUniform4fv(glGetUniformLocation(m_phong_shader, (base + "dir").c_str()),
+                     1,
+                     &lights[i].dir[0]);
+        glUniform1f(glGetUniformLocation(m_phong_shader, (base + "penumbra").c_str()),
+                    lights[i].penumbra);
+        glUniform1f(glGetUniformLocation(m_phong_shader, (base + "angle").c_str()), lights[i].angle);
     }
 
     // with global coefficients
-    glUniform1f(glGetUniformLocation(m_phong_shader,"ka"), m_ka);
-    glUniform1f(glGetUniformLocation(m_phong_shader,"kd"), m_kd);
-    glUniform1f(glGetUniformLocation(m_phong_shader,"ks"), m_ks);
+    glUniform1f(glGetUniformLocation(m_phong_shader, "ka"), m_ka);
+    glUniform1f(glGetUniformLocation(m_phong_shader, "kd"), m_kd);
+    glUniform1f(glGetUniformLocation(m_phong_shader, "ks"), m_ks);
 
     //Write material coefficients
-    m_shininess = 32.f;                   // higher specular
-    glm::vec3 mat_ambient  = glm::vec3(0.15f, 0.25f, 0.35f);
-    glm::vec3 mat_diffuse  = glm::vec3(0.6f, 0.95f, 1.0f);
+    m_shininess = 32.f; // higher specular
+    glm::vec3 mat_ambient = glm::vec3(0.15f, 0.25f, 0.35f);
+    glm::vec3 mat_diffuse = glm::vec3(0.6f, 0.95f, 1.0f);
     glm::vec3 mat_specular = glm::vec3(1.0f, 1.0f, 1.0f);
 
     glUniform3fv(glGetUniformLocation(m_phong_shader, "mat_ambient"), 1, &mat_ambient[0]);
     glUniform3fv(glGetUniformLocation(m_phong_shader, "mat_diffuse"), 1, &mat_diffuse[0]);
     glUniform3fv(glGetUniformLocation(m_phong_shader, "mat_specular"), 1, &mat_specular[0]);
-    glUniform1f(glGetUniformLocation(m_phong_shader,"shininess"), m_shininess);
-
+    glUniform1f(glGetUniformLocation(m_phong_shader, "shininess"), m_shininess);
 
     glBindVertexArray(m_quadVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
     glUseProgram(0);
-
-
 }
 
 void GLRenderer::toneMapToScreen()
@@ -260,7 +290,6 @@ void GLRenderer::toneMapToScreen()
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, m_hdrColorTex);
 
-
     // draw fullscreen quad
     glBindVertexArray(m_quadVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -274,7 +303,7 @@ void GLRenderer::resizeGL(int w, int h)
 {
     // update device pixel scaled size
     m_devicePixelRatio = this->devicePixelRatio();
-    m_screen_width  = w * m_devicePixelRatio;
+    m_screen_width = w * m_devicePixelRatio;
     m_screen_height = h * m_devicePixelRatio;
 
     // Recreate HDR FBO at new size
@@ -283,7 +312,6 @@ void GLRenderer::resizeGL(int w, int h)
     // Update projection
     m_proj = glm::perspective(glm::radians(45.0f), 1.0f * w / h, 0.01f, 100.0f);
 }
-
 
 void GLRenderer::mousePressEvent(QMouseEvent *event)
 {
@@ -308,14 +336,14 @@ void GLRenderer::rebuildMatrices()
 {
     // Update view matrix by rotating eye vector based on x and y angles
     m_view = glm::mat4(1.0f);
-    glm::mat4 rot = glm::rotate(glm::radians(-10.0f * (float)m_angleX), glm::vec3(0,0,1));
-    glm::vec3 eye = glm::vec3(2.0f,0,0);
-    eye = glm::vec3(rot * glm::vec4(eye,1.0f));
+    glm::mat4 rot = glm::rotate(glm::radians(-10.0f * (float) m_angleX), glm::vec3(0, 0, 1));
+    glm::vec3 eye = glm::vec3(2.0f, 0, 0);
+    eye = glm::vec3(rot * glm::vec4(eye, 1.0f));
 
-    rot = glm::rotate(glm::radians(-10.0f * (float)m_angleY), glm::cross(glm::vec3(0,0,1), eye));
-    eye = glm::vec3(rot * glm::vec4(eye,1.0f));
+    rot = glm::rotate(glm::radians(-10.0f * (float) m_angleY), glm::cross(glm::vec3(0, 0, 1), eye));
+    eye = glm::vec3(rot * glm::vec4(eye, 1.0f));
 
     eye = eye * m_zoom;
-    m_view = glm::lookAt(eye, glm::vec3(0,0,0), glm::vec3(0,0,1));
+    m_view = glm::lookAt(eye, glm::vec3(0, 0, 0), glm::vec3(0, 0, 1));
     update();
 }

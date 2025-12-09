@@ -4,10 +4,10 @@
 #ifdef __APPLE__
 #define GL_SILENCE_DEPRECATION
 #endif
-#include "light.h"
 #include "GL/glew.h" // Must always be first include
 #include <QOpenGLWidget>
 #include "glm/glm.hpp"
+#include "light.h"
 
 QT_FORWARD_DECLARE_CLASS(QOpenGLShaderProgram)
 
@@ -18,20 +18,19 @@ public:
     ~GLRenderer();
 
 protected:
-    void initializeGL()                  override; // Called once at the start of the program
-    void paintGL()                       override; // Called every frame in a loop
+    void initializeGL() override;                  // Called once at the start of the program
+    void paintGL() override;                       // Called every frame in a loop
     void resizeGL(int width, int height) override; // Called when window size changes
     void createHDRFBO(int w, int h);
 
     void mousePressEvent(QMouseEvent *e) override; // Used for camera movement
-    void mouseMoveEvent(QMouseEvent *e)  override; // Used for camera movement
-    void wheelEvent(QWheelEvent *e)      override; // Used for camera movement
+    void mouseMoveEvent(QMouseEvent *e) override;  // Used for camera movement
+    void wheelEvent(QWheelEvent *e) override;      // Used for camera movement
     void rebuildMatrices();                        // Used for camera movement
     void finish();
     void createHDRFramebuffer(int w, int h);
     void renderSceneHDR();
     void toneMapToScreen();
-
 
 private:
     GLuint m_phong_shader, m_tonemap_shader;
@@ -39,46 +38,35 @@ private:
     GLuint m_hdrFBO, m_hdrColorTex, m_hdrDepthRBO;
     GLuint m_defaultFBO;
     glm::mat4 m_model = glm::mat4(1);
-    glm::mat4 m_view  = glm::mat4(1);
-    glm::mat4 m_proj  = glm::mat4(1);
+    glm::mat4 m_view = glm::mat4(1);
+    glm::mat4 m_proj = glm::mat4(1);
 
-    std::vector<SceneLightData> lights = {
-        // Warm key light — front-right
-        {
-            1, // point
-            {1.0f, 0.85f, 0.7f},
-            {1.0f, 0.045f, 0.0075f},
-            glm::vec4(0.0f, 1.0f, 3.0f, 1.0f),
-            {0,0,0,0},
-            0.f,
-            0.f
-        },
+    std::vector<SceneLightData> lights = {    // Warm key light — front-right
+                                          {1, // point
+                                           {1.0f, 0.85f, 0.7f},
+                                           {1.0f, 0.045f, 0.0075f},
+                                           glm::vec4(0.0f, 1.0f, 3.0f, 1.0f),
+                                           {0, 0, 0, 0},
+                                           0.f,
+                                           0.f},
 
-        // Cool fill light — left-back
-        {
-            1, // point
-            {0.4f, 0.7f, 1.0f},
-            {1.0f, 0.045f, 0.0075f},
-            glm::vec4(3.0f, -2.0f, 3.0f, 1.0f),
-            {0,0,0,0},
-            0.f,
-            0.f
-        },
+                                          // Cool fill light — left-back
+                                          {1, // point
+                                           {0.4f, 0.7f, 1.0f},
+                                           {1.0f, 0.045f, 0.0075f},
+                                           glm::vec4(3.0f, -2.0f, 3.0f, 1.0f),
+                                           {0, 0, 0, 0},
+                                           0.f,
+                                           0.f},
 
-        // Soft directional rim light — top-back
-        {
-            0, // directional
-            {0., 0.4f, 0.4f},
-            {1.0f, 0.0f, 0.0f},
-            {0,0,0,0},
-            glm::normalize(glm::vec4(0.3f, -1.0f, 0.5f, 0.0f)),
-            0.f,
-            0.f
-        }
-    };
-
-
-
+                                          // Soft directional rim light — top-back
+                                          {0, // directional
+                                           {0., 0.4f, 0.4f},
+                                           {1.0f, 0.0f, 0.0f},
+                                           {0, 0, 0, 0},
+                                           glm::normalize(glm::vec4(0.3f, -1.0f, 0.5f, 0.0f)),
+                                           0.f,
+                                           0.f}};
 
     float m_ka;
     float m_kd;
@@ -86,12 +74,12 @@ private:
     float m_shininess;
 
     QPoint m_prevMousePos;
-    float  m_angleX;
-    float  m_angleY;
-    float  m_zoom;
+    float m_angleX;
+    float m_angleY;
+    float m_zoom;
 
     // GLuint m_phong_shader, m_tonemap_shader;
     int m_screen_width, m_screen_height;
     float m_devicePixelRatio;
-//    glm::vec3 m_cameraPos (or compute from inverse view);
+    //    glm::vec3 m_cameraPos (or compute from inverse view);
 };
