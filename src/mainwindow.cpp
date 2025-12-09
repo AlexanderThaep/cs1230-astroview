@@ -9,10 +9,10 @@
 #include <QVBoxLayout>
 #include <iostream>
 
-void MainWindow::initialize()
+void MainWindow::initialize(const QString &sceneFilePath)
 {
     RenderData renderData;
-    SceneParser::parse("/Users/philadlamini/Documents/Academics/CS1230/proj5-PhilaDlamini/scenefiles/realtime/required/unit_cone_cap.json", renderData);
+    SceneParser::parse(sceneFilePath.toStdString(), renderData); // use the passed path
     Scene scene(width(), height(), renderData);
     astroRender = new AstroRender(scene);
 

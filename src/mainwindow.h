@@ -10,7 +10,7 @@ class MainWindow : public QWidget
     Q_OBJECT
 
 public:
-    void initialize();
+    void initialize(const QString &sceneFilePath);
     void finish();
 
 private:

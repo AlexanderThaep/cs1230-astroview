@@ -18,7 +18,13 @@ int main(int argc, char *argv[])
     QSurfaceFormat::setDefaultFormat(fmt);
 
     MainWindow w;
-    w.initialize();
+
+    QString sceneFile = "/Users/philadlamini/Documents/Academics/CS1230/proj5-PhilaDlamini/scenefiles/realtime/required/unit_cone_cap.json"; // default path
+    if (argc > 1) {
+        sceneFile = argv[1]; // use command line argument if provided
+    }
+
+    w.initialize(sceneFile);
     w.resize(800, 600);
     w.show();
 
