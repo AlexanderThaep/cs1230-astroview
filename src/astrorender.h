@@ -21,6 +21,7 @@ class AstroRender : public QOpenGLWidget
 public:
     AstroRender(Scene scene, QWidget *parent = nullptr);
     ~AstroRender();
+    void finish();
 
 public slots:
     void tick(QTimerEvent* event);
@@ -31,7 +32,6 @@ protected:
     void resizeGL(int width, int height) override; // Called when window size changes
     // void wheelEvent(QWheelEvent *e)      override; // Used for camera movement
     // void rebuildMatrices();                        // Used for camera movement
-    void finish();
     void createHDRFramebuffer(int w, int h);
     void renderSceneHDR();
     void toneMapToScreen();

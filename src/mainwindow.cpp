@@ -1,11 +1,18 @@
 #include "mainwindow.h"
+#include "settings.h"
 
+#include <QFileDialog>
+#include <QGroupBox>
 #include <QHBoxLayout>
+#include <QLabel>
+#include <QSettings>
+#include <QVBoxLayout>
+#include <iostream>
 
-MainWindow::MainWindow()
+void MainWindow::initialize()
 {
     RenderData renderData;
-    SceneParser::parse("/Users/philadlamini/Documents/Academics/CS1230/proj5-PhilaDlamini/scenefiles/realtime/required/directional_light_1.json", renderData);
+    SceneParser::parse("/Users/philadlamini/Documents/Academics/CS1230/proj5-PhilaDlamini/scenefiles/realtime/required/unit_cone_cap.json", renderData);
     Scene scene(width(), height(), renderData);
     astroRender = new AstroRender(scene);
 
@@ -14,4 +21,7 @@ MainWindow::MainWindow()
     this->setLayout(container);
 }
 
-MainWindow::~MainWindow() {}
+void MainWindow::finish() {
+    astroRender->finish();
+    delete(astroRender);
+}

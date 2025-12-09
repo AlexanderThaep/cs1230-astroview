@@ -1,7 +1,7 @@
 #include "astrorender.h"
 
 #include <QCoreApplication>
-#include "src/shaderloader.h"
+#include "src/utils/shaderloader.h"
 
 #include <QMouseEvent>
 #include "glm/gtc/constants.hpp"

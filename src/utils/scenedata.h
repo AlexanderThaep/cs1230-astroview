@@ -1,6 +1,5 @@
 #ifndef SCENEDATA_H
 #define SCENEDATA_H
-#pragma once
 
 #include <vector>
 #include <string>
@@ -21,6 +20,7 @@ enum class PrimitiveType {
     PRIMITIVE_CYLINDER,
     PRIMITIVE_SPHERE,
     PRIMITIVE_MESH
+
 };
 
 // Enum of the types of transformations that can be applied
@@ -82,7 +82,6 @@ struct SceneCameraData {
     glm::vec4 up;
 
     float heightAngle; // The height angle of the camera in RADIANS
-
     float aperture;    // Only applicable for depth of field
     float focalLength; // Only applicable for depth of field
 };
@@ -169,6 +168,5 @@ struct SceneNode {
     std::vector<SceneLight*> lights;
     std::vector<SceneNode*> children;
 };
-
 
 #endif // SCENEDATA_H

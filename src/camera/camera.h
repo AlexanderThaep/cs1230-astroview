@@ -43,4 +43,4 @@ public:
 
 };
 
-#endif // CAMERA_H
+#endif

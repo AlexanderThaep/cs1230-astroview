@@ -1,6 +1,5 @@
 #ifndef SCENEFILEREADER_H
 #define SCENEFILEREADER_H
-
 #include "scenedata.h"
 
 #include <vector>
@@ -51,3 +50,4 @@ private:
 };
 
 #endif // SCENEFILEREADER_H
+

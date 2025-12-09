@@ -30,7 +30,7 @@ add_executable(${PROJECT_NAME}
 
     src/astrorender.h
     src/mainwindow.h
-    src/shaderloader.h
+
 
     src/utils/scenedata.h
     src/utils/sceneparser.h
@@ -38,6 +38,7 @@ add_executable(${PROJECT_NAME}
     src/camera/camera.h src/camera/camera.cpp
     src/utils/scene.h src/utils/scene.cpp
     src/utils/scenefilereader.h src/utils/scenefilereader.cpp
+    src/utils/shaderloader.h
 )
 # Specifies other files
 qt_add_resources(${PROJECT_NAME} "Resources"
