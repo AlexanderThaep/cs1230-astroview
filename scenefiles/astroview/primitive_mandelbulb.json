@@ -1,0 +1,61 @@
+{
+  "name": "root",
+  "globalData": {
+    "ambientCoeff": 0.5,
+    "diffuseCoeff": 0.5,
+    "specularCoeff": 0.5,
+    "transparentCoeff": 0
+  },
+  "cameraData": {
+    "position": [0, 0, 4],
+    "up": [0.0, 1.0, 0.0],
+    "heightAngle": 30.0,
+    "focus": [0.0, 0.0, 0.0]
+  },
+  "groups": [
+      {
+          "lights": [
+              {
+                  "type": "directional",
+                  "color": [0.31, 0.82, 0.34],
+                  "direction": [-3.15, 2.84, -0.12]
+              },
+              {
+                  "type": "directional",
+                  "color": [0.8, 0.71, 0.77],
+                  "direction": [-0.95, 0.65, -1.53]
+              },
+              {
+                  "type": "directional",
+                  "color": [0.06, 0.8, 1.0],
+                  "direction": [-0.35, 2.92, 1.79]
+              },
+              {
+                  "type": "directional",
+                  "color": [0.85, 0.27, 0.66],
+                  "direction": [-0.54, -1.41, -2.82]
+              },
+              {
+                  "type": "directional",
+                  "color": [0.34, 0.12, 0.06],
+                  "direction": [4.39, -2.62, -3.34]
+              }
+          ]
+      },
+      {
+          "groups": [
+              {
+                  "primitives": [
+                      {
+                          "type": "mandelbulb",
+                          "ambient": [0.99, 0.76, 0.56],
+                          "diffuse": [0.01, 0.87, 0.9],
+                          "specular": [1.0, 1.0, 1.0],
+                          "shininess": 20
+                      }
+                  ]
+              }
+          ]
+      }
+   ]
+}

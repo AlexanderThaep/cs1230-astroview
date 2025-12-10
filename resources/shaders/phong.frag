@@ -153,7 +153,7 @@ float mandelbulbDE(vec3 pos)
 float mengerSDF(vec3 p)
 {
     float scale = 3.0;
-    float d = 1.0;
+    float d = -1.0;
 
     for (int i = 0; i < 4; i++)
     {
@@ -161,12 +161,15 @@ float mengerSDF(vec3 p)
         if (p.x < p.y) p.xy = p.yx;
         if (p.x < p.z) p.xz = p.zx;
 
+        float c = max(p.y, p.z);
+        d = max(d, (c - (scale - 1.0)) / pow(scale, float(i)));
+
         p = p * scale - vec3(scale-1.0); // scale and translate
     }
 
     // distance to unit cube
-    d = (length(max(p - vec3(1.0), 0.0))) / pow(scale, 4.0);
-    return d;
+    float cube_d = (length(max(p - vec3(1.0), 0.0))) / pow(scale, 4.0);
+    return max(cube_d, d);
 }
 
 
@@ -602,6 +605,7 @@ void main() {
         vec3 N = estimateNormal(hitPos);
         if (inside) {
             N = -N;
+            hitPos += N * 0.002;
         }
 
         vec3 color = phongLighting(hitPos, N, shapeIndex);
