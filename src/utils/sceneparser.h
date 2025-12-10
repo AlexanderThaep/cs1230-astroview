@@ -24,8 +24,8 @@ struct RenderData {
     std::vector<SceneLightData> lights;
     std::vector<RenderShapeData> shapes;
 
-    GLint shapeTexUnitArray[8] = { 0 };
-    GLuint shapeTextures[8] = { 0 };
+    GLint shapeTexUnitArray[32] = { 0 };
+    GLuint shapeTextures[32] = { 0 };
 
     bool hasBH;
     glm::vec3 bh_pos;

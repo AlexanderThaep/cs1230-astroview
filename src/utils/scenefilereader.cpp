@@ -851,6 +851,16 @@ bool ScenefileReader::parsePrimitive(const QJsonObject &prim, SceneNode *node) {
         primitive->type = PrimitiveType::PRIMITIVE_CONE;
     else if (primType == "mesh")
         primitive->type = PrimitiveType::PRIMITIVE_SPHERE;
+    else if (primType == "mandelbulb")
+        primitive->type = PrimitiveType::PRIMITIVE_MANDELBULB;
+    else if (primType == "menger")
+        primitive->type = PrimitiveType::PRIMITIVE_MENGER;
+    else if (primType == "julia")
+        primitive->type = PrimitiveType::PRIMITIVE_JULIA;
+    else if (primType == "terrain")
+        primitive->type = PrimitiveType::PRIMITIVE_TERRAIN;
+    else if (primType == "sphere_torus")
+        primitive->type = PrimitiveType::PRIMITIVE_SPHERE_TORUS;
     else if (primType == "sbh")
         primitive->type = PrimitiveType::PRIMITIVE_SBH;
     else {

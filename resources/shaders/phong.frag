@@ -345,21 +345,41 @@ float marchRay(vec3 ro, vec3 rd, out vec3 hitPos, out int hitShape)
     float t = 0.0;
     hitShape = -1;
 
-    for (int i = 0; i < MAX_STEPS; i++) {
-        vec2 res = sceneSDF(ray_state.ray_pos);
-        float d = res.x;
+    if (hasBH == 0) {
+        for (int i = 0; i < MAX_STEPS; i++) {
+            vec3 p = ro + rd * t;
 
-        if (d < EPS) {
-            hitPos = ray_state.ray_pos;
-            hitShape = int(res.y);
+            vec2 res = sceneSDF(p);
+            float d = res.x;
 
-            // Linear approx in short distances
-            return t;
+            if (d < EPS) {
+                hitPos = p;
+                hitShape = int(res.y);
+
+                // Linear approx in short distances
+                return t;
+            }
+
+            if (t > MAX_DIST) break;
+
+            float step = max(d * 0.7, 0.0005);
+            t += step;
         }
+    } else {
+        for (int i = 0; i < MAX_STEPS; i++) {
+            vec2 res = sceneSDF(ray_state.ray_pos);
+            float d = res.x;
 
-        if (t > MAX_DIST) break;
+            if (d < EPS) {
+                hitPos = ray_state.ray_pos;
+                hitShape = int(res.y);
 
-        if (hasBH == 1) {
+                // Linear approx in short distances
+                return t;
+            }
+
+            if (t > MAX_DIST) break;
+
             if (length(ray_state.ray_pos - bh_pos) < bh_r * 1.1) break;
 
             float step = max(EPS, d * 0.7 / LIPSCHITZ_C);
@@ -367,11 +387,6 @@ float marchRay(vec3 ro, vec3 rd, out vec3 hitPos, out int hitShape)
             ray_state = RK4Step(ray_state, step, bh_pos, bh_r);
 
             t += length(prev_pos - ray_state.ray_pos);
-        } else {
-            float step = max(d * 0.7, 0.0005);
-            ray_state = RK4Step(ray_state, step, bh_pos, 0.0f);
-
-            t += step;
         }
     }
 

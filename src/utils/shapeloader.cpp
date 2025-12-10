@@ -2,6 +2,8 @@
 #include "settings.h"
 #include "utils/sceneparser.h"
 
+#include <iostream>
+
 #include "shapeloader.h"
 
 static inline float remap(float x, float a, float b, float c, float d)
@@ -42,6 +44,7 @@ void updateShapes(RenderData &rend)
 {
     int i = 0;
     for (RenderShapeData &o : rend.shapes) {
+        i = glm::min(7, i);
         QString texFile = QString::fromStdString(o.primitive.material.textureMap.filename);
         if (!texFile.isEmpty()) {
             rend.shapeTextures[i] = loadTexture(texFile);
