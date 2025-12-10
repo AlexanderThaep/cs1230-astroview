@@ -26,6 +26,10 @@ struct RenderData {
 
     GLint shapeTexUnitArray[8] = { 0 };
     GLuint shapeTextures[8] = { 0 };
+
+    bool hasBH;
+    glm::vec3 bh_pos;
+    float bh_r;
 };
 
 class SceneParser {

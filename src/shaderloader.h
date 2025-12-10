@@ -83,6 +83,7 @@ public:
                 GLint loc = glGetUniformLocation(shader, name.c_str());
                 if (loc >= 0) glUniform1i(loc, unit);
             }
+
             const auto& shape = rend.shapes[i];
             std::string base = "shapes[" + std::to_string(i) + "].";
 
@@ -105,6 +106,10 @@ public:
         if (locArray >= 0) glUniform1iv(locArray, numShapes, rend.shapeTexUnitArray);
 
         glUniform1i(glGetUniformLocation(shader, "numShapes"), numShapes);
+
+        glUniform1i(glGetUniformLocation(shader, "hasBH"), rend.hasBH ? 1 : 0);
+        glUniform3f(glGetUniformLocation(shader, "bh_pos"), rend.bh_pos.x, rend.bh_pos.y, rend.bh_pos.z);
+        glUniform1f(glGetUniformLocation(shader, "bh_r"), rend.bh_r);
     }
 
     static void passCameraValues(GLuint shader, Camera &cam) {

@@ -89,6 +89,10 @@ bool SceneParser::parse(std::string filepath, RenderData &renderData)
     renderData.lights.clear();
     renderData.shapes.clear();
 
+    renderData.hasBH = false;
+    renderData.bh_pos = glm::vec3(0.0f);
+    renderData.bh_r = 1.0f;
+
     populateRenderData(glm::mat4(1.0f), fileReader.getRootNode(), renderData);
 
     auto t1 = Clock::now();

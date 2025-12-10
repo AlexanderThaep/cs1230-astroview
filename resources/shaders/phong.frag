@@ -21,6 +21,11 @@ struct SceneShapeData {
     bool hasTexture;
 };
 
+struct rayState {
+    vec3 ray_pos;
+    vec3 ray_vel;
+};
+
 const int MAX_LIGHTS = 8;
 uniform SceneLightData lights[MAX_LIGHTS];
 uniform int numLights;
@@ -42,6 +47,10 @@ const int MENGER = 5;
 const int JULIA = 6;
 const int TERRAIN = 7;
 const int SPHERE_TORUS = 8;
+
+uniform int hasBH;
+uniform vec3 bh_pos;
+uniform float bh_r;
 
 //Light type definitions
 const int LIGHT_DIRECTIONAL = 0;
@@ -281,11 +290,7 @@ vec3 estimateNormal(vec3 p)
 NOTE: we need to implement the function such that we know what shape it hits,
     and so that SceneSDF gives the distance to the closest shape. this way, we can compute
     lighting. Also, we need to pass the black hole parameters as uniforms to the shader.
-
-struct rayState {
-    vec3 ray_pos;
-    vec3 ray_vel;
-};
+*/
 
 vec3 get_accel(vec3 r, vec3 v, float bh_r) {
     vec3 h = cross(r, v);
@@ -328,8 +333,6 @@ rayState RK4Step(rayState ray_state, float dt, vec3 bh_pos, float bh_r) {
 
 float marchRay(vec3 ro, vec3 rd, out vec3 hitPos, out int hitShape)
 {
-    vec3 bh_pos = vec3(0.f, 0.f, 0.f);
-    float bh_r = 0.5;
     const float MAX_DIST = 100.0;
     const float EPS = 0.0005;
     const int MAX_STEPS = 1000;
@@ -356,53 +359,22 @@ float marchRay(vec3 ro, vec3 rd, out vec3 hitPos, out int hitShape)
 
         if (t > MAX_DIST) break;
 
-        if (length(ray_state.ray_pos - bh_pos) < bh_r * 1.1) break;
+        if (hasBH == 1) {
+            if (length(ray_state.ray_pos - bh_pos) < bh_r * 1.1) break;
 
-        float step = max(EPS, d * 0.7 / LIPSCHITZ_C);
-        vec3 prev_pos = ray_state.ray_pos;
-        ray_state = RK4Step(ray_state, step, bh_pos, bh_r);
+            float step = max(EPS, d * 0.7 / LIPSCHITZ_C);
+            vec3 prev_pos = ray_state.ray_pos;
+            ray_state = RK4Step(ray_state, step, bh_pos, bh_r);
 
-        t += length(prev_pos - ray_state.ray_pos);
-    }
+            t += length(prev_pos - ray_state.ray_pos);
+        } else {
+            float step = max(d * 0.7, 0.0005);
+            ray_state = RK4Step(ray_state, step, bh_pos, 0.0f);
 
-    hitShape = -1;
-    hitPos = ro + rd * t;
-    return t;
-}
-*/
-
-float marchRay(vec3 ro, vec3 rd, out vec3 hitPos, out int hitShape)
-{
-    const float MAX_DIST = 100.0;
-    const float EPS = 0.0005;
-    const int MAX_STEPS = 1000;
-
-    float t = 0.0;
-    hitShape = -1;   // default: no hit
-
-    for (int i = 0; i < MAX_STEPS; i++) {
-
-        vec3 p = ro + rd * t;
-
-        // sceneSDF returns: vec2(d, shapeIndex)
-        vec2 res = sceneSDF(p);
-        float d = res.x;
-
-        if (d < EPS) {
-            hitPos   = p;
-            hitShape = int(res.y);   // store which shape was hit
-            return t;
+            t += step;
         }
-
-        if (t > MAX_DIST)
-            break;
-
-        // standard safe marching step
-        float step = max(d * 0.7, 0.0005);
-        t += step;
     }
 
-    // no hit
     hitShape = -1;
     hitPos = ro + rd * t;
     return t;

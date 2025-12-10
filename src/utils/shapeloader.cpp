@@ -38,15 +38,6 @@ GLuint loadTexture(const QString &filePath)
     return texID;
 }
 
-void loadShape(RenderShapeData &o)
-{
-    switch (o.primitive.type) {
-    case PrimitiveType::PRIMITIVE_SBH: break;
-    default:
-        break;
-    }
-}
-
 void updateShapes(RenderData &rend)
 {
     int i = 0;
@@ -58,7 +49,16 @@ void updateShapes(RenderData &rend)
         } else
             rend.shapeTextures[i] = 0;
 
-        loadShape(o);
+        switch (o.primitive.type) {
+        case PrimitiveType::PRIMITIVE_SBH:
+            rend.hasBH = true;
+            rend.bh_pos = o.worldPos;
+            rend.bh_r = glm::length(o.ctm[0]);
+            break;
+        default:
+            break;
+        }
+
         i++;
     }
 }
@@ -67,4 +67,8 @@ void clearShapes(RenderData &rend)
 {
     rend.shapes.clear();
     rend.lights.clear();
+
+    rend.hasBH = false;
+    rend.bh_pos = glm::vec3(0.0f);
+    rend.bh_r = 1.0f;
 }
