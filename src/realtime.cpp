@@ -367,19 +367,6 @@ void Realtime::saveViewportImage(std::string filePath)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, fixedWidth, fixedHeight, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texture, 0);
 
-    // Optional: Create a depth buffer if your rendering uses depth testing
-    GLuint rbo;
-    glGenRenderbuffers(1, &rbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, fixedWidth, fixedHeight);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rbo);
-
-    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE) {
-        std::cerr << "Error: Framebuffer is not complete!" << std::endl;
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        return;
-    }
-
     // Render to the FBO
     glBindFramebuffer(GL_FRAMEBUFFER, fbo);
     glViewport(0, 0, fixedWidth, fixedHeight);
@@ -397,7 +384,7 @@ void Realtime::saveViewportImage(std::string filePath)
 
     // Convert to QImage
     QImage image(pixels.data(), fixedWidth, fixedHeight, QImage::Format_RGB888);
-    QImage flippedImage = image.mirrored(); // Flip the image vertically
+    QImage flippedImage = image.flipped(Qt::Vertical); // Flip the image vertically
 
     // Save to file using Qt
     QString qFilePath = QString::fromStdString(filePath);
@@ -407,6 +394,5 @@ void Realtime::saveViewportImage(std::string filePath)
 
     // Clean up
     glDeleteTextures(1, &texture);
-    glDeleteRenderbuffers(1, &rbo);
     glDeleteFramebuffers(1, &fbo);
 }
