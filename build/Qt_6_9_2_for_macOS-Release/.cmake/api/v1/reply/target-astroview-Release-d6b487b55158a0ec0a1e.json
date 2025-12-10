@@ -52,7 +52,7 @@
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 89,
+				"line" : 88,
 				"parent" : 0
 			},
 			{
@@ -166,13 +166,13 @@
 			{
 				"command" : 7,
 				"file" : 0,
-				"line" : 86,
+				"line" : 85,
 				"parent" : 0
 			},
 			{
 				"command" : 12,
 				"file" : 0,
-				"line" : 72,
+				"line" : 71,
 				"parent" : 0
 			},
 			{
@@ -357,7 +357,7 @@
 				28,
 				30,
 				32,
-				35
+				34
 			]
 		}
 	],
@@ -493,7 +493,7 @@
 				28,
 				30,
 				32,
-				35
+				34
 			]
 		},
 		{
@@ -524,16 +524,15 @@
 			"name" : "",
 			"sourceIndexes" : 
 			[
-				34,
-				36
+				35
 			]
 		},
 		{
 			"name" : "CMake Rules",
 			"sourceIndexes" : 
 			[
-				37,
-				38
+				36,
+				37
 			]
 		}
 	],
@@ -725,11 +724,6 @@
 			"backtrace" : 1,
 			"path" : "src/utils/shapeloader.h",
 			"sourceGroupIndex" : 1
-		},
-		{
-			"backtrace" : 1,
-			"path" : ".gitignore",
-			"sourceGroupIndex" : 2
 		},
 		{
 			"backtrace" : 28,
