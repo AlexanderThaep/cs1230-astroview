@@ -187,14 +187,7 @@ void Realtime::renderSceneHDR()
     // Upload shape information
     ShaderLoader::passShaderValues(m_phong_shader, m_render);
     ShaderLoader::passLightValues(m_phong_shader, m_render);
-
-    //Upload all other informatio: projection + view matrices, and camera pos
-    GLuint locView = glGetUniformLocation(m_phong_shader, "uView"); //view matrix
-    glUniformMatrix4fv(locView, 1, GL_FALSE, &m_cam->getViewMatrix()[0][0]);
-    GLuint locProj = glGetUniformLocation(m_phong_shader, "uProj"); //projection matrix
-    glUniformMatrix4fv(locProj, 1, GL_FALSE, &m_cam->getProjectionMatrix()[0][0]);
-    glm::vec3 camPos = m_cam->getPosition(); //camera pos
-    glUniform3f(glGetUniformLocation(m_phong_shader, "uCameraPos"), camPos.x, camPos.y, camPos.z);
+    ShaderLoader::passCameraValues(m_phong_shader, *m_cam);
 
     //Draw scene
     glBindVertexArray(m_quadVAO);

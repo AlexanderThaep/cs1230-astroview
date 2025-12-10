@@ -23,6 +23,9 @@ struct RenderData {
 
     std::vector<SceneLightData> lights;
     std::vector<RenderShapeData> shapes;
+
+    GLint shapeTexUnitArray[8] = { 0 };
+    GLuint shapeTextures[8] = { 0 };
 };
 
 class SceneParser {

@@ -1,9 +1,8 @@
 #pragma once
 
 #include "GL/glew.h"
-#include "glm/gtc/type_ptr.hpp"
+
 #include <QFile>
-#include <QImage>
 #include <QTextStream>
 #include <camera/camera.h>
 #include <utils/sceneparser.h>
@@ -68,19 +67,16 @@ public:
         int numShapes = std::min((int) rend.shapes.size(), 16);
 
         // Now bind each texture that's available and set sampler mapping
-        GLint shapeTexUnitArray[8] = { 0 };
-        GLuint shapeTextures[8] = { 0 };
-
         // Initialize to -1 or 0 — ensures well-defined values
-        for (int i = 0; i < 8; ++i) shapeTexUnitArray[i] = -1;
+        for (int i = 0; i < 8; ++i) rend.shapeTexUnitArray[i] = -1;
 
         for (int i = 0; i < numShapes; i++) {
-            if (shapeTextures[i] != 0) {
+            if (rend.shapeTextures[i] != 0) {
                 GLint unit = i; // GL_TEXTURE0 + i
-                shapeTexUnitArray[i] = unit;
+                rend.shapeTexUnitArray[i] = unit;
 
                 glActiveTexture(GL_TEXTURE0 + unit);
-                glBindTexture(GL_TEXTURE_2D, shapeTextures[i]);
+                glBindTexture(GL_TEXTURE_2D, rend.shapeTextures[i]);
 
                 // Also set the sampler uniform "uShapeTex[i]" to that unit
                 std::string name = "uShapeTex[" + std::to_string(i) + "]";
@@ -106,39 +102,27 @@ public:
         }
 
         GLint locArray = glGetUniformLocation(shader, "uShapeTexUnits");
-        if (locArray >= 0) glUniform1iv(locArray, numShapes, shapeTexUnitArray);
+        if (locArray >= 0) glUniform1iv(locArray, numShapes, rend.shapeTexUnitArray);
 
         glUniform1i(glGetUniformLocation(shader, "numShapes"), numShapes);
     }
 
-private:
-    static GLuint loadTexture(const QString &filePath)
-    {
-        QImage img(filePath);
-        if (img.isNull()) {
-        qWarning("Failed to load texture: %s", qPrintable(filePath));
-        return 0;
-        }
+    static void passCameraValues(GLuint shader, Camera &cam) {
+        //Upload all other informatio: projection + view matrices, and camera pos
+        GLuint locView = glGetUniformLocation(shader, "uView"); //view matrix
+        glUniformMatrix4fv(locView, 1, GL_FALSE, &cam.getViewMatrix()[0][0]);
+        GLuint locProj = glGetUniformLocation(shader, "uProj"); //projection matrix
+        glUniformMatrix4fv(locProj, 1, GL_FALSE, &cam.getProjectionMatrix()[0][0]);
+        glm::vec3 camPos = cam.getPosition(); //camera pos
+        glUniform3f(glGetUniformLocation(shader, "uCameraPos"), camPos.x, camPos.y, camPos.z);
 
-        img = img.convertToFormat(QImage::Format_RGBA8888); // ensure 4 channels
-
-        GLuint texID;
-        glGenTextures(1, &texID);
-        glBindTexture(GL_TEXTURE_2D, texID);
-
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width(), img.height(), 0,
-             GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-        glBindTexture(GL_TEXTURE_2D, 0);
-        return texID;
+        GLuint locInvView = glGetUniformLocation(shader, "uInvView");
+        glUniformMatrix4fv(locInvView, 1, GL_FALSE, &cam.getInverseViewMatrix()[0][0]);
+        GLuint locInvProj = glGetUniformLocation(shader, "uInvProj");
+        glUniformMatrix4fv(locInvProj, 1, GL_FALSE, &cam.getInverseProjectionMatrix()[0][0]);
     }
 
+private:
     static GLuint createShader(GLenum shaderType, const char *filepath)
     {
         GLuint shaderID = glCreateShader(shaderType);

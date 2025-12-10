@@ -52,6 +52,8 @@ in vec2 UV;
 out vec4 fragColor;
 uniform mat4 uView;
 uniform mat4 uProj;
+uniform mat4 uInvProj;
+uniform mat4 uInvView;
 uniform vec3 uCameraPos;
 uniform sampler2D uBackgroundTex;
 
@@ -59,7 +61,6 @@ uniform sampler2D uBackgroundTex;
 uniform float ka; // ambient
 uniform float kd; // diffuse
 uniform float ks; // specular
-
 
 //////////// Fractal SDF definitions ////////////////
 // Cube: side length 1, centered at origin
@@ -478,8 +479,6 @@ vec2 coneUV(vec3 p)
     return vec2(u, v);
 }
 
-
-
 vec3 computeDiffuse(vec3 pos, vec3 N, vec3 L, int shapeIndex) {
     float diff = max(dot(N, L), 0.0);
 
@@ -596,20 +595,18 @@ vec2 cylindricalUV(vec3 dir) {
 
 void main() {
     vec2 uv = UV * 2.0 - 1.0;
-    mat4 invProj = inverse(uProj); //inverse matrices
-    mat4 invView = inverse(uView);
 
     /** Shoot a ray starting from each pixel position on the screen **/
     vec4 rayClip = vec4(uv, -1.0, 1.0); // Build a point on the near plane in clip space
-    vec4 rayEye  = invProj * rayClip; //Get the same point in camera space
+    vec4 rayEye  = uInvProj * rayClip; //Get the same point in camera space
     rayEye = vec4(rayEye.xy, -1.0, 0.0);  // Turn that point into a direction pointing forward (-Z)
-    vec3 rd = normalize((invView * rayEye).xyz); // Convert direction to world space
+    vec4 rd = normalize(uInvView * rayEye); // Convert direction to world space
     vec3 ro = uCameraPos;  // Ray origin is the camera position
 
     // Ray march
     vec3 hitPos;
     int shapeIndex;
-    marchRay(ro, rd, hitPos, shapeIndex);
+    marchRay(ro, rd.xyz, hitPos, shapeIndex);
 
     if (shapeIndex != -1) {
        vec3 N = estimateNormal(hitPos);

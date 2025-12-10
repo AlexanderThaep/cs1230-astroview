@@ -14,6 +14,7 @@ private:
     glm::mat4 c_viewMatrix;
     glm::mat4 c_inverseViewMatrix;
     glm::mat4 c_projectionMatrix;
+    glm::mat4 c_inverseProjectionMatrix;
 
     float c_aspectRatio;
     float c_heightAngle;
@@ -34,6 +35,7 @@ public:
 
     // Returns the projection matrix for the current camera settings.
     glm::mat4 getProjectionMatrix() const;
+    glm::mat4 getInverseProjectionMatrix() const;
 
     // Returns the aspect ratio of the camera.
     float getAspectRatio() const;

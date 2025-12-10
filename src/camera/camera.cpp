@@ -119,6 +119,7 @@ void Camera::update(SceneCameraData &cameraData, float ar)
     );
 
     this->c_projectionMatrix = z_scale * unhinging * projection;
+    this->c_inverseProjectionMatrix = glm::inverse(this->c_projectionMatrix);
 }
 
 glm::vec3 Camera::getPosition() const
@@ -130,7 +131,6 @@ glm::mat4 Camera::getViewMatrix() const
 {
     return this->c_viewMatrix;
 }
-
 glm::mat4 Camera::getInverseViewMatrix() const
 {
     return this->c_inverseViewMatrix;
@@ -139,6 +139,10 @@ glm::mat4 Camera::getInverseViewMatrix() const
 glm::mat4 Camera::getProjectionMatrix() const
 {
     return this->c_projectionMatrix;
+}
+glm::mat4 Camera::getInverseProjectionMatrix() const
+{
+    return this->c_inverseProjectionMatrix;
 }
 
 float Camera::getAspectRatio() const
