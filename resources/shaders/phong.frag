@@ -439,14 +439,22 @@ vec2 cubeUV(vec3 p) {
 
 vec2 cylinderUV(vec3 p)
 {
+    vec3 a = abs(p);
+    float l = length(a.xz);
+    if (a.y >= l && a.y >= l) {
+        vec2 uv = p.xz;
+        uv.x = -uv.x;
+        return uv + 0.5;
+    }
+
     // angle around Y axis
     float angle = atan(p.z, p.x);           // [-pi, pi]
-    float u = (angle / (2.0 * 3.14159265)) + 0.5;
+    float u = (angle / (2.0 * 3.14159265));
 
     // y mapped from [-0.5, 0.5] -> [0,1]
     float v = clamp(p.y + 0.5, 0.0, 1.0);
 
-    return vec2(u, v);
+    return vec2(1.0 - u, 1.0 - v);
 }
 
 vec2 coneUV(vec3 p)
@@ -511,11 +519,9 @@ vec3 computeDiffuse(vec3 pos, vec3 N, vec3 L, int shapeIndex) {
     // Blend between texture and base diffuse
     float blend = shapes[shapeIndex].blend;
 
-    vec3 blendedDiffuse =
-        blend       * texColor +
-        (1.0-blend) * baseDiffuse;
+    vec3 blendedDiffuse = (1.0 - blend) * kd * baseDiffuse + blend * texColor;
 
-    return kd * diff * blendedDiffuse;
+    return diff * blendedDiffuse;
 }
 
 

@@ -50,7 +50,7 @@ void updateShapes(RenderData &rend)
             rend.shapeTextures[i] = loadTexture(texFile);
             o.hasTexture = true;
         } else
-            rend.shapeTextures[i] = 0;
+            rend.shapeTextures[i] = 1;
 
         switch (o.primitive.type) {
         case PrimitiveType::PRIMITIVE_SBH:

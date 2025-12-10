@@ -154,17 +154,10 @@ void Realtime::createHDRFramebuffer(int w, int h)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glBindTexture(GL_TEXTURE_2D, 0);
 
-    // Create depth renderbuffer (optional - but good practice)
-    glGenRenderbuffers(1, &m_hdrDepthRBO);
-    glBindRenderbuffer(GL_RENDERBUFFER, m_hdrDepthRBO);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, m_screen_width, m_screen_height);
-    glBindRenderbuffer(GL_RENDERBUFFER, 0);
-
     // Create framebuffer and attach
     glGenFramebuffers(1, &m_hdrFBO);
     glBindFramebuffer(GL_FRAMEBUFFER, m_hdrFBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_hdrColorTex, 0);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_hdrDepthRBO);
 
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE) {
