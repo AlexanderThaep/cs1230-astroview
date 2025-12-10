@@ -45,6 +45,8 @@ protected:
     void mouseReleaseEvent(QMouseEvent *event) override;
     void mouseMoveEvent(QMouseEvent *event) override;
     void timerEvent(QTimerEvent *event) override;
+    GLuint loadTexture(const QString &filePath);
+
 
 
 private:
@@ -52,6 +54,10 @@ private:
     GLuint m_quadVAO, m_quadVBO;
     GLuint m_hdrFBO, m_hdrColorTex, m_hdrDepthRBO;
     GLuint m_defaultFBO;
+    GLuint m_shapeTextures[8] = {0}; // match MAX_SHAPES
+    GLint shapeTexUnitArray[8] = {0};
+
+
 
     //The scene being rendered
     Scene m_scene;

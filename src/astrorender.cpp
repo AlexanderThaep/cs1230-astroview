@@ -23,6 +23,7 @@ AstroRender::AstroRender(Scene scene, QWidget *parent)
     m_tonemap_shader(0),
     m_scene(scene)
 {
+    for (int i = 0; i < 8; ++i) m_shapeTextures[i] = 0;
     m_prev_mouse_pos = glm::vec2(size().width()/2, size().height()/2);
     setMouseTracking(true);
     setFocusPolicy(Qt::StrongFocus);
@@ -58,6 +59,12 @@ void AstroRender::finish()
     if (m_hdrColorTex) glDeleteTextures(1, &m_hdrColorTex);
     if (m_hdrDepthRBO) glDeleteRenderbuffers(1, &m_hdrDepthRBO);
     if (m_hdrFBO) glDeleteFramebuffers(1, &m_hdrFBO);
+
+    // Delete each texture
+    for (int i = 0; i < 8; i++) {
+        glDeleteTextures(1, &m_shapeTextures[i]);
+        m_shapeTextures[i] = 0;
+    }
 }
 
 void AstroRender::initializeGL()
@@ -122,6 +129,8 @@ void AstroRender::initializeGL()
     glUseProgram(m_tonemap_shader);
     GLint loc = glGetUniformLocation(m_tonemap_shader, "uHDRTexture");
     if (loc >= 0) glUniform1i(loc, 0);
+
+
     glUseProgram(0);
 }
 
@@ -176,6 +185,35 @@ void AstroRender::paintGL()
     toneMapToScreen();
 }
 
+//Uploads the background texture
+GLuint AstroRender::loadTexture(const QString &filePath)
+{
+    QImage img(filePath);
+    if (img.isNull()) {
+        qWarning("Failed to load texture: %s", qPrintable(filePath));
+        return 0;
+    }
+
+    img = img.convertToFormat(QImage::Format_RGBA8888); // ensure 4 channels
+
+    GLuint texID;
+    glGenTextures(1, &texID);
+    glBindTexture(GL_TEXTURE_2D, texID);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width(), img.height(), 0,
+                 GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    return texID;
+}
+
+//Uploads the lights
 void AstroRender::uploadLights(GLuint shader) {
 
     // std::cout << "Will upload " << m_scene.renderData.lights.size() << " lights " << std::endl;
@@ -216,8 +254,15 @@ void AstroRender::uploadShapes(GLuint shader)
     for (int i = 0; i < numShapes; i++) {
         const auto& shape = m_scene.renderData.shapes[i];
         std::string base = "shapes[" + std::to_string(i) + "].";
+        bool hasTexture = false;
 
-        // std::cout << "primtive type was " << (int) shape.primitive.type << std::endl;
+        QString texFile = QString::fromStdString(shape.primitive.material.textureMap.filename);
+        if (!texFile.isEmpty()) {
+            m_shapeTextures[i] = loadTexture(texFile);
+            hasTexture = true;
+        } else
+            m_shapeTextures[i] = 0;
+
 
         // primitive type
         glUniform1i(glGetUniformLocation(shader, (base + "primitive").c_str()),(GLuint) shape.primitive.type);
@@ -230,6 +275,9 @@ void AstroRender::uploadShapes(GLuint shader)
         glUniform3f(glGetUniformLocation(shader, (base + "diffuse").c_str()),shape.primitive.material.cDiffuse.r, shape.primitive.material.cDiffuse.g, shape.primitive.material.cDiffuse.b);
         glUniform3f(glGetUniformLocation(shader, (base + "specular").c_str()),shape.primitive.material.cSpecular.r, shape.primitive.material.cSpecular.g, shape.primitive.material.cSpecular.b);
         glUniform1f(glGetUniformLocation(shader, (base + "shininess").c_str()),shape.primitive.material.shininess);
+        glUniform1f(glGetUniformLocation(shader, (base + "blend").c_str()),shape.primitive.material.blend);
+        glUniform1i(glGetUniformLocation(shader, (base + "hasTexture").c_str()), hasTexture ? 1 : 0);
+
     }
 }
 
@@ -246,6 +294,31 @@ void AstroRender::renderSceneHDR()
 
     //Upload all shape information
     uploadShapes(m_phong_shader);
+
+    // Now bind each texture that's available and set sampler mapping
+    GLint shapeTexUnitArray[8];
+    int numShapes = std::fmin(8, (int)m_scene.renderData.shapes.size());
+
+    // Initialize to -1 or 0 — ensures well-defined values
+    for (int i = 0; i < 8; ++i) shapeTexUnitArray[i] = -1;
+
+    for (int i = 0; i < numShapes; i++) {
+        if (m_shapeTextures[i] != 0) {
+            GLint unit = i; // GL_TEXTURE0 + i
+            shapeTexUnitArray[i] = unit;
+
+            glActiveTexture(GL_TEXTURE0 + unit);
+            glBindTexture(GL_TEXTURE_2D, m_shapeTextures[i]);
+
+            // Also set the sampler uniform "uShapeTex[i]" to that unit
+            std::string name = "uShapeTex[" + std::to_string(i) + "]";
+            GLint loc = glGetUniformLocation(m_phong_shader, name.c_str());
+            if (loc >= 0) glUniform1i(loc, unit);
+        }
+    }
+
+    GLint locArray = glGetUniformLocation(m_phong_shader, "uShapeTexUnits");
+    if (locArray >= 0) glUniform1iv(locArray, numShapes, shapeTexUnitArray);
 
     //Uplaod lights
     uploadLights(m_phong_shader);

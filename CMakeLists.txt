@@ -49,6 +49,7 @@ qt_add_resources(${PROJECT_NAME} "Resources"
   resources/shaders/phong.frag
   resources/shaders/tonemap.vert
   resources/shaders/tonemap.frag
+  resources/textures/stars.jpg
 )
 
 # GLEW: this creates its library and allows you to `#include "GL/glew.h"`

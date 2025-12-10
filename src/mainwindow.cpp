@@ -11,7 +11,12 @@
 void MainWindow::initialize(const QString &sceneFilePath)
 {
     RenderData renderData;
-    SceneParser::parse(sceneFilePath.toStdString(), renderData); // use the passed path
+    bool read = SceneParser::parse(sceneFilePath.toStdString(), renderData); // use the passed path
+
+    if(!read) {
+        std::cerr << "Failed to read " << sceneFilePath.toStdString() << std::endl;
+        exit(1);
+    }
     Scene scene(width(), height(), renderData);
     astroRender = new AstroRender(scene);
 

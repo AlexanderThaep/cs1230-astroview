@@ -17,6 +17,8 @@ struct SceneShapeData {
     vec3 diffuse;      // object material diffuse term
     vec3 specular;     // object material specular term
     float shininess;   // material shininess
+    float blend;
+    bool hasTexture;
 };
 
 
@@ -27,6 +29,9 @@ uniform int numLights;
 const int MAX_SHAPES = 8;
 uniform SceneShapeData shapes[MAX_SHAPES];
 uniform int numShapes;
+
+uniform sampler2D uShapeTex[8];    // bound to texture units 0..7
+uniform int uShapeTexUnits[8];     // mapping from shape index → unit
 
 //Shape type definitions
 const int CUBE = 0;
@@ -39,7 +44,6 @@ const int JULIA = 6;
 const int TERRAIN = 7;
 const int SPHERE_TORUS = 8;
 
-
 //Light type definitions
 const int LIGHT_DIRECTIONAL = 0;
 const int LIGHT_POINT = 1;
@@ -50,6 +54,7 @@ out vec4 fragColor;
 uniform mat4 uView;
 uniform mat4 uProj;
 uniform vec3 uCameraPos;
+uniform sampler2D uBackgroundTex;
 
 // Global light coefficients
 uniform float ka; // ambient
@@ -305,6 +310,127 @@ float marchRay(vec3 ro, vec3 rd, out vec3 hitPos, out int hitShape)
     return t;
 }
 
+//UV definitions
+vec2 sphereUV(vec3 p) {
+    // Transform to local space if needed
+    vec3 local = normalize(p); // assuming p is in sphere local space
+    float u = 0.5 + atan(local.z, local.x) / (2.0 * 3.14159265);
+    float v = 0.5 - asin(local.y) / 3.14159265;
+    return vec2(u, v);
+}
+
+vec2 cubeUV(vec3 p) {
+    // p is local-space point on the cube surface, in [-0.5, +0.5]
+
+    vec3 a = abs(p);
+
+    vec2 uv;
+
+    // +X face
+    if (a.x >= a.y && a.x >= a.z) {
+        uv = p.zy;       // use z, y
+        uv.y = -uv.y;    // flip for consistency
+        uv = uv * 0.5 + 0.5;
+    }
+    // +Y face
+    else if (a.y >= a.x && a.y >= a.z) {
+        uv = p.xz;       // use x, z
+        uv.x = -uv.x;
+        uv = uv * 0.5 + 0.5;
+    }
+    // +Z face
+    else {
+        uv = p.xy;       // use x, y
+        uv = uv * 0.5 + 0.5;
+    }
+
+    return uv;
+}
+
+vec2 cylinderUV(vec3 p)
+{
+    // angle around Y axis
+    float angle = atan(p.z, p.x);           // [-pi, pi]
+    float u = (angle / (2.0 * 3.14159265)) + 0.5;
+
+    // y mapped from [-0.5, 0.5] -> [0,1]
+    float v = clamp(p.y + 0.5, 0.0, 1.0);
+
+    return vec2(u, v);
+}
+
+vec2 coneUV(vec3 p)
+{
+    // --- Angular coordinate ---
+    float angle = atan(p.z, p.x);         // [-pi,pi]
+    float u = (angle / (2.0 * 3.14159265)) + 0.5;
+
+    // --- V coordinate (slope distance) ---
+    // shift so apex at y = 1.0 and base at y=0.0
+    float h = p.y + 0.5;                  // h in [0,1]
+
+    // slope length = sqrt(height^2 + radius^2)
+    float slopeLen = sqrt(1.0 + 0.5*0.5); // ≈ 1.118
+
+    // radial fraction along the cone
+    float r = length(p.xz);               // 0 → 0.5
+    float frac = r / 0.5;                 // 0 → 1
+
+    float v = frac * (1.0 / slopeLen);    // normalized slope distance
+
+    return vec2(u, v);
+}
+
+
+
+vec3 computeDiffuse(vec3 pos, vec3 N, vec3 L, int shapeIndex) {
+    float diff = max(dot(N, L), 0.0);
+
+    // Base diffuse
+    vec3 baseDiffuse = shapes[shapeIndex].diffuse;
+
+    // If no texture → standard diffuse
+    if (!shapes[shapeIndex].hasTexture) {
+        return kd * diff * baseDiffuse;
+    }
+
+    // --- Sphere texture lookup ---
+    vec3 texColor = vec3(1.0);
+    vec3 local = (shapes[shapeIndex].invCTM * vec4(pos, 1.0)).xyz;
+    vec2 uv = vec2(0.0);
+
+    switch(shapes[shapeIndex].primitive) {
+
+        case SPHERE:
+            uv = sphereUV(local);
+            break;
+
+        case CUBE:
+            uv = cubeUV(local);
+            break;
+
+        case CONE:
+            uv = coneUV(local);
+            break;
+
+        case CYLINDER:
+            uv = cylinderUV(local);
+            break;
+    }
+
+    texColor = texture(uShapeTex[shapeIndex], uv).rgb;
+
+    // Blend between texture and base diffuse
+    float blend = shapes[shapeIndex].blend;
+
+    vec3 blendedDiffuse =
+        blend       * texColor +
+        (1.0-blend) * baseDiffuse;
+
+    return kd * diff * blendedDiffuse;
+}
+
+
 vec3 computeLight(SceneLightData light, vec3 pos, vec3 normal, int shapeIndex) {
     vec3 N = normalize(normal);
     vec3 V = normalize(uCameraPos - pos);
@@ -330,8 +456,7 @@ vec3 computeLight(SceneLightData light, vec3 pos, vec3 normal, int shapeIndex) {
     }
 
     // Diffuse
-    float diff = max(dot(N, L), 0.0);
-    vec3 diffuse = kd * diff * shapes[shapeIndex].diffuse;
+    vec3 diffuse = computeDiffuse(pos, N, L, shapeIndex);
 
     // Specular
     vec3 specular = vec3(0.0);
@@ -356,6 +481,23 @@ vec3 phongLighting(vec3 p, vec3 N, int shapeIndex) {
     return color;
 }
 
+//For our background texture
+vec2 cylindricalUV(vec3 dir) {
+    vec3 d = normalize(dir);
+
+    // azimuth angle around Y-axis (longitude)
+    float theta = atan(d.z, d.x); // [-pi, pi]
+
+    // Map theta [-pi, pi] → [0,1]
+    float u = (theta + 3.14159265) / (2.0 * 3.14159265);
+
+    // height along Y-axis [-1,1] → [0,1]
+    float v = (d.y + 1.0) * 0.5;
+
+    return vec2(u, v);
+}
+
+
 
 void main() {
     vec2 uv = UV * 2.0 - 1.0;
@@ -379,6 +521,6 @@ void main() {
        vec3 color = phongLighting(hitPos, N, shapeIndex);
        fragColor = vec4(color, 1.0);
     } else {
-       fragColor = vec4(vec3(0.0), 1.0);
+        fragColor = vec4(vec3(0.0), 1.0);
     }
 }
