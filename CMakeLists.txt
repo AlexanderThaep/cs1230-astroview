@@ -44,25 +44,8 @@ add_executable(${PROJECT_NAME}
     src/utils/sceneparser.h
     src/utils/sceneparser.cpp
 
-    src/utils/objparser.h
-    src/utils/objparser.cpp
-
     src/settings.h
     src/settings.cpp
-
-    src/shapes/shapes.h
-    src/shapes/Cone.cpp
-    src/shapes/Cone.h
-    src/shapes/Cube.cpp
-    src/shapes/Cube.h
-    src/shapes/Cylinder.cpp
-    src/shapes/Cylinder.h
-    src/shapes/Sphere.cpp
-    src/shapes/Sphere.h
-    src/shapes/Tet.cpp
-    src/shapes/Tet.h
-    src/shapes/Triangle.cpp
-    src/shapes/Triangle.h
 
     src/utils/shapeloader.cpp
     src/utils/shapeloader.h

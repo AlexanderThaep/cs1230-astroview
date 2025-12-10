@@ -19,14 +19,5 @@ uniform mat4 view;
 uniform mat4 proj;
 
 void main() {
-    // Task 8: compute the world-space position and normal, then pass them to
-    //         the fragment shader using the variables created in task 5
-    w_pos = vec3(model * vec4(pos, 1.0f));
-    w_norm = inv_t_model * norm;
-
-    // Recall that transforming normals requires obtaining the inverse-transpose of the model matrix!
-    // In projects 5 and 6, consider the performance implications of performing this here.
-
-    // Task 9: set gl_Position to the object space position transformed to clip space
-    gl_Position = proj * (view * vec4(w_pos, 1.0f));
+    gl_Position = vec4(pos, 0.0, 1.0);
 }

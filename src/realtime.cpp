@@ -40,7 +40,17 @@ void Realtime::finish()
 
     // Students: anything requiring OpenGL calls when the program exits should be done here
     clearShapes(m_render);
-    glDeleteProgram(m_shader);
+    glDeleteProgram(m_phong_shader);
+    glDeleteProgram(m_tonemap_shader);
+
+    // Delete fullscreen quad
+    glDeleteBuffers(1, &m_quadVBO);
+    glDeleteVertexArrays(1, &m_quadVAO);
+
+    // Delete HDR framebuffer resources
+    glDeleteTextures(1, &m_hdrColorTex);
+    glDeleteRenderbuffers(1, &m_hdrDepthRBO);
+    glDeleteFramebuffers(1, &m_hdrFBO);
 
     this->doneCurrent();
 }
@@ -62,7 +72,7 @@ void Realtime::initializeGL()
     std::cout << "Initialized GL: Version " << glewGetString(GLEW_VERSION) << std::endl;
 
     // Allows OpenGL to draw objects appropriately on top of one another
-    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_DEPTH_TEST);
     // Tells OpenGL to only draw the front face
     glEnable(GL_CULL_FACE);
     // Tells OpenGL how big the screen is
@@ -71,7 +81,181 @@ void Realtime::initializeGL()
     // Students: anything requiring OpenGL calls when the program starts should be done here
     glClearColor(0, 0, 0, 1);
 
-    m_shader = ShaderLoader::createShaderProgram("resources/shaders/default.vert", "resources/shaders/default.frag");
+    // Compile shaders
+    m_phong_shader = ShaderLoader::createShaderProgram(":/resources/shaders/phong.vert",
+                                                       ":/resources/shaders/phong.frag");
+    m_tonemap_shader = ShaderLoader::createShaderProgram(":/resources/shaders/tonemap.vert",
+                                                         ":/resources/shaders/tonemap.frag");
+
+    // Fullscreen quad: position XY, uv
+    float quadVertices[] = {// pos      // uv
+                            -1.0f, -1.0f, 0.0f,  0.0f, 1.0f, -1.0f,
+                            1.0f,  0.0f,  -1.0f, 1.0f, 0.0f, 1.0f,
+
+                            -1.0f, 1.0f,  0.0f,  1.0f, 1.0f, -1.0f,
+                            1.0f,  0.0f,  1.0f,  1.0f, 1.0f, 1.0f};
+
+    glGenVertexArrays(1, &m_quadVAO);
+    glGenBuffers(1, &m_quadVBO);
+
+    glBindVertexArray(m_quadVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_quadVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), quadVertices, GL_STATIC_DRAW);
+
+    // pos attribute (location 0)
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) 0);
+
+    // uv attribute (location 1)
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void *) (2 * sizeof(float)));
+
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    // Setup sizes and HDR FBO
+    m_screen_width = size().width() * m_devicePixelRatio;
+    m_screen_height = size().height() * m_devicePixelRatio;
+    createHDRFramebuffer(m_screen_width, m_screen_height);
+
+    // Set tonemap shader sampler once
+    glUseProgram(m_tonemap_shader);
+    GLint loc = glGetUniformLocation(m_tonemap_shader, "uHDRTexture");
+    if (loc >= 0)
+        glUniform1i(loc, 0);
+    glUseProgram(0);
+}
+
+// HDR Framebuffer Creation
+void Realtime::createHDRFramebuffer(int w, int h)
+{
+    // delete old resources if they exist
+    if (m_hdrColorTex) {
+        glDeleteTextures(1, &m_hdrColorTex);
+        m_hdrColorTex = 0;
+    }
+    if (m_hdrDepthRBO) {
+        glDeleteRenderbuffers(1, &m_hdrDepthRBO);
+        m_hdrDepthRBO = 0;
+    }
+    if (m_hdrFBO) {
+        glDeleteFramebuffers(1, &m_hdrFBO);
+        m_hdrFBO = 0;
+    }
+
+    m_screen_width = w;
+    m_screen_height = h;
+
+    // Create float color texture (HDR)
+    glGenTextures(1, &m_hdrColorTex);
+    glBindTexture(GL_TEXTURE_2D, m_hdrColorTex);
+    glTexImage2D(GL_TEXTURE_2D,
+                 0,
+                 GL_RGBA16F,
+                 m_screen_width,
+                 m_screen_height,
+                 0,
+                 GL_RGBA,
+                 GL_FLOAT,
+                 nullptr);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // Clamp to edge to avoid wrap seams
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    // Create depth renderbuffer (optional - but good practice)
+    glGenRenderbuffers(1, &m_hdrDepthRBO);
+    glBindRenderbuffer(GL_RENDERBUFFER, m_hdrDepthRBO);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, m_screen_width, m_screen_height);
+    glBindRenderbuffer(GL_RENDERBUFFER, 0);
+
+    // Create framebuffer and attach
+    glGenFramebuffers(1, &m_hdrFBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, m_hdrFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, m_hdrColorTex, 0);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, m_hdrDepthRBO);
+
+    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if (status != GL_FRAMEBUFFER_COMPLETE) {
+        fprintf(stderr, "ERROR: HDR Framebuffer not complete (status 0x%x)\n", status);
+    }
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Realtime::renderSceneHDR()
+{
+    // Bind HDR FBO
+    glBindFramebuffer(GL_FRAMEBUFFER, m_hdrFBO);
+    glViewport(0, 0, m_screen_width, m_screen_height);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Use phong shader
+    glUseProgram(m_phong_shader);
+
+    // Upload shape information
+    int shape = 0;
+    float shapeZoomMultiplier = 1.0f;
+    glUniform1i(glGetUniformLocation(m_phong_shader, "uShape"), shape);
+
+    // Upload camera uniforms
+    GLuint locView = glGetUniformLocation(m_phong_shader, "uView");
+    glUniformMatrix4fv(locView, 1, GL_FALSE, &m_cam->getViewMatrix()[0][0]);
+
+    GLuint locProj = glGetUniformLocation(m_phong_shader, "uProj");
+    glUniformMatrix4fv(locProj, 1, GL_FALSE, &m_cam->getProjectionMatrix()[0][0]);
+
+    // Upload camera pos for shaders
+    glm::vec3 camPos = glm::vec3(glm::inverse(m_cam->getViewMatrix()) * glm::vec4(0, 0, 0, 1));
+    camPos *= shapeZoomMultiplier;
+    GLuint locCam = glGetUniformLocation(m_phong_shader, "uCameraPos");
+    glUniform3fv(locCam, 1, &camPos[0]);
+
+    ShaderLoader::passLightValues(m_phong_shader, m_render);
+
+    // with global coefficients
+    glUniform1f(glGetUniformLocation(m_phong_shader, "ka"), 0.5);
+    glUniform1f(glGetUniformLocation(m_phong_shader, "kd"), 0.5);
+    glUniform1f(glGetUniformLocation(m_phong_shader, "ks"), 0.5);
+
+    //Write material coefficients
+    glm::vec3 mat_ambient = glm::vec3(0.15f, 0.25f, 0.35f);
+    glm::vec3 mat_diffuse = glm::vec3(0.6f, 0.95f, 1.0f);
+    glm::vec3 mat_specular = glm::vec3(1.0f, 1.0f, 1.0f);
+
+    glUniform3fv(glGetUniformLocation(m_phong_shader, "mat_ambient"), 1, &mat_ambient[0]);
+    glUniform3fv(glGetUniformLocation(m_phong_shader, "mat_diffuse"), 1, &mat_diffuse[0]);
+    glUniform3fv(glGetUniformLocation(m_phong_shader, "mat_specular"), 1, &mat_specular[0]);
+    glUniform1f(glGetUniformLocation(m_phong_shader, "shininess"), 1.0);
+
+    glBindVertexArray(m_quadVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+    glUseProgram(0);
+}
+
+void Realtime::toneMapToScreen()
+{
+    // Bind default framebuffer (screen)
+    glBindFramebuffer(GL_FRAMEBUFFER, m_defaultFBO);
+    glViewport(0, 0, width() * m_devicePixelRatio, height() * m_devicePixelRatio);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glUseProgram(m_tonemap_shader);
+
+    // Bind HDR texture to unit 0
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, m_hdrColorTex);
+
+    // draw fullscreen quad
+    glBindVertexArray(m_quadVAO);
+    glDrawArrays(GL_TRIANGLES, 0, 6);
+    glBindVertexArray(0);
+
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glUseProgram(0);
 }
 
 void Realtime::paintGL()
@@ -79,30 +263,19 @@ void Realtime::paintGL()
     // Students: anything requiring OpenGL calls every frame should be done here
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    glUseProgram(m_shader);
+    if (!m_cam) return;
 
-    GLuint loc;
-
-    for (RenderShapeData &o : m_render.shapes) {
-        glBindVertexArray(o.vao);
-
-        ShaderLoader::passShaderValues(m_shader, o, m_render, m_cam);
-        ShaderLoader::passLightValues(m_shader, m_render);
-
-        glDrawArrays(GL_TRIANGLES, 0, o.vertexCount / 3);
-
-        glBindVertexArray(0);
-    }
-
-    glBindVertexArray(0);
-
-    glUseProgram(0);
+    renderSceneHDR();
+    toneMapToScreen();
 }
 
 void Realtime::resizeGL(int w, int h)
 {
     // Tells OpenGL how big the screen is
     glViewport(0, 0, size().width() * m_devicePixelRatio, size().height() * m_devicePixelRatio);
+
+    m_screen_width = w * m_devicePixelRatio;
+    m_screen_height = h * m_devicePixelRatio;
 
     // Students: anything requiring OpenGL calls when the program starts should be done here
 
@@ -123,7 +296,7 @@ void Realtime::sceneChanged()
     }
 
     m_render = data;
-    updateShapes(m_render, settings.extraCredit1);
+    updateShapes(m_render);
 
     if (!m_cam) m_cam = new Camera(m_render.cameraData);
     m_cam->update(m_render.cameraData, aspectRatio(size().width(), size().height()));
@@ -137,7 +310,7 @@ void Realtime::CameraSettingsChanged()
     if (m_cam) m_cam->update(m_render.cameraData, aspectRatio(size().width(), size().height()));
 
     this->makeCurrent();
-    updateShapes(m_render, settings.extraCredit1);
+    updateShapes(m_render);
 
     update(); // asks for a PaintGL() call to occur
 }
@@ -145,7 +318,7 @@ void Realtime::CameraSettingsChanged()
 void Realtime::SceneSettingsChanged()
 {
     this->makeCurrent();
-    updateShapes(m_render, settings.extraCredit1);
+    updateShapes(m_render);
 
     update(); // asks for a PaintGL() call to occur
 }
@@ -221,7 +394,7 @@ void Realtime::timerEvent(QTimerEvent *event)
         || m_keyMap[Qt::Key_Control])) {
 
         this->makeCurrent();
-        updateShapes(m_render, true);
+        updateShapes(m_render);
     }
 
     update(); // asks for a PaintGL() call to occur

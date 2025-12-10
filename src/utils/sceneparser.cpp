@@ -2,8 +2,6 @@
 #include "scenefilereader.h"
 #include <glm/gtx/transform.hpp>
 
-#include "objparser.h"
-
 #include <chrono>
 #include <iostream>
 

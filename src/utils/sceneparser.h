@@ -8,9 +8,9 @@
 // Struct which contains data for a single primitive, to be used for rendering
 struct RenderShapeData {
     ScenePrimitive primitive;
-    glm::mat4 ctm; // the cumulative transformation matrix
-    glm::mat4 invCTM; // inverse ctm
-    glm::mat3 invCTMT; // inverse ctm and transposed
+    glm::mat4 ctm; 		// the cumulative transformation matrix
+    glm::mat4 invCTM; 	// inverse ctm
+    glm::mat3 invCTMT; 	// inverse ctm and transposed
 
     glm::vec3 worldPos; // World space position of the object
     int vertexCount; 	// Number of individual verts

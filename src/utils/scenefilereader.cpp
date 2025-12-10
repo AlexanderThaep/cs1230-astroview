@@ -834,7 +834,7 @@ bool ScenefileReader::parsePrimitive(const QJsonObject &prim, SceneNode *node) {
     ScenePrimitive *primitive = new ScenePrimitive();
     SceneMaterial &mat = primitive->material;
     mat.clear();
-    primitive->type = PrimitiveType::PRIMITIVE_CUBE;
+    primitive->type = PrimitiveType::PRIMITIVE_SPHERE;
     mat.textureMap.isUsed = false;
     mat.bumpMap.isUsed = false;
     mat.cDiffuse.r = mat.cDiffuse.g = mat.cDiffuse.b = 1;
@@ -849,20 +849,12 @@ bool ScenefileReader::parsePrimitive(const QJsonObject &prim, SceneNode *node) {
         primitive->type = PrimitiveType::PRIMITIVE_CYLINDER;
     else if (primType == "cone")
         primitive->type = PrimitiveType::PRIMITIVE_CONE;
-    else if (primType == "mesh") {
-        primitive->type = PrimitiveType::PRIMITIVE_MESH;
-        if (!prim.contains("meshFile")) {
-            std::cout << "primitive type mesh must contain field meshFile" << std::endl;
-            return false;
-        }
-        if (!prim["meshFile"].isString()) {
-            std::cout << "primitive meshFile must be of type string" << std::endl;
-            return false;
-        }
-
-        std::filesystem::path relativePath(prim["meshFile"].toString().toStdString());
-        primitive->meshfile = (basepath / relativePath).string();
-    }
+    else if (primType == "mesh")
+        primitive->type = PrimitiveType::PRIMITIVE_SPHERE;
+    else if (primType == "sdf")
+        primitive->type = PrimitiveType::PRIMITIVE_SDF;
+    else if (primType == "sbh")
+        primitive->type = PrimitiveType::PRIMITIVE_SBH;
     else {
         std::cout << "unknown primitive type \"" << primType << "\"" << std::endl;
         return false;

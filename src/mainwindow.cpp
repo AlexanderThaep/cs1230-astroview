@@ -25,21 +25,10 @@ void MainWindow::initialize()
     QFont font;
     font.setPointSize(12);
     font.setBold(true);
-    QLabel *tesselation_label = new QLabel(); // Parameters label
-    tesselation_label->setText("Tesselation");
-    tesselation_label->setFont(font);
     QLabel *camera_label = new QLabel(); // Camera label
     camera_label->setText("Camera");
     camera_label->setFont(font);
 
-    // From old Project 6
-    // QLabel *filters_label = new QLabel(); // Filters label
-    // filters_label->setText("Filters");
-    // filters_label->setFont(font);
-
-    QLabel *ec_label = new QLabel(); // Extra Credit label
-    ec_label->setText("Extra Credit");
-    ec_label->setFont(font);
     QLabel *param1_label = new QLabel(); // Parameter 1 label
     param1_label->setText("Parameter 1:");
     QLabel *param2_label = new QLabel(); // Parameter 2 label
@@ -49,15 +38,6 @@ void MainWindow::initialize()
     QLabel *far_label = new QLabel(); // Far plane label
     far_label->setText("Far Plane:");
 
-    // From old Project 6
-    // // Create checkbox for per-pixel filter
-    // filter1 = new QCheckBox();
-    // filter1->setText(QStringLiteral("Per-Pixel Filter"));
-    // filter1->setChecked(false);
-    // // Create checkbox for kernel-based filter
-    // filter2 = new QCheckBox();
-    // filter2->setText(QStringLiteral("Kernel-Based Filter"));
-    // filter2->setChecked(false);
 
     // Create file uploader for scene file
     uploadFile = new QPushButton();
@@ -165,28 +145,11 @@ void MainWindow::initialize()
 
     vLayout->addWidget(uploadFile);
     vLayout->addWidget(saveImage);
-    vLayout->addWidget(tesselation_label);
-    vLayout->addWidget(param1_label);
-    vLayout->addWidget(p1Layout);
-    vLayout->addWidget(param2_label);
-    vLayout->addWidget(p2Layout);
     vLayout->addWidget(camera_label);
     vLayout->addWidget(near_label);
     vLayout->addWidget(nearLayout);
     vLayout->addWidget(far_label);
     vLayout->addWidget(farLayout);
-
-    // From old Project 6
-    // vLayout->addWidget(filters_label);
-    // vLayout->addWidget(filter1);
-    // vLayout->addWidget(filter2);
-
-    // Extra Credit:
-    vLayout->addWidget(ec_label);
-    vLayout->addWidget(ec1);
-    vLayout->addWidget(ec2);
-    vLayout->addWidget(ec3);
-    vLayout->addWidget(ec4);
 
     connectUIElements();
 
@@ -207,25 +170,11 @@ void MainWindow::finish()
 
 void MainWindow::connectUIElements()
 {
-    // From old Project 6
-    //connectPerPixelFilter();
-    //connectKernelBasedFilter();
     connectUploadFile();
     connectSaveImage();
-    connectParam1();
-    connectParam2();
     connectNear();
     connectFar();
-    connectExtraCredit();
 }
-
-// From old Project 6
-// void MainWindow::connectPerPixelFilter() {
-//     connect(filter1, &QCheckBox::clicked, this, &MainWindow::onPerPixelFilter);
-// }
-// void MainWindow::connectKernelBasedFilter() {
-//     connect(filter2, &QCheckBox::clicked, this, &MainWindow::onKernelBasedFilter);
-// }
 
 void MainWindow::connectUploadFile()
 {
@@ -280,16 +229,6 @@ void MainWindow::connectExtraCredit()
     connect(ec3, &QCheckBox::clicked, this, &MainWindow::onExtraCredit3);
     connect(ec4, &QCheckBox::clicked, this, &MainWindow::onExtraCredit4);
 }
-
-// From old Project 6
-// void MainWindow::onPerPixelFilter() {
-//     settings.perPixelFilter = !settings.perPixelFilter;
-//     realtime->settingsChanged();
-// }
-// void MainWindow::onKernelBasedFilter() {
-//     settings.kernelBasedFilter = !settings.kernelBasedFilter;
-//     realtime->settingsChanged();
-// }
 
 void MainWindow::onUploadFile()
 {

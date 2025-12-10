@@ -38,6 +38,10 @@ protected:
     void paintGL() override; // Called whenever the OpenGL context changes or by an update() request
     void resizeGL(int width, int height) override; // Called when window size changes
 
+    void createHDRFramebuffer(int w, int h);
+    void renderSceneHDR();
+    void toneMapToScreen();
+
 private:
     void keyPressEvent(QKeyEvent *event) override;
     void keyReleaseEvent(QKeyEvent *event) override;
@@ -57,9 +61,14 @@ private:
 
     // Device Correction Variables
     double m_devicePixelRatio;
+    int m_screen_width;
+    int m_screen_height;
 
     // GL state variables
-    GLuint m_shader;
+    GLuint m_phong_shader, m_tonemap_shader;
+    GLuint m_quadVAO, m_quadVBO;
+    GLuint m_hdrFBO, m_hdrColorTex, m_hdrDepthRBO;
+    GLuint m_defaultFBO;
 
     // Data for rendering
     RenderData m_render;
