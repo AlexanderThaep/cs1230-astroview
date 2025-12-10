@@ -66,7 +66,6 @@ add_executable(${PROJECT_NAME}
 
     src/utils/shapeloader.cpp
     src/utils/shapeloader.h
-    .gitignore
 )
 # Specifies other files
 qt_add_resources(${PROJECT_NAME} "Resources"
