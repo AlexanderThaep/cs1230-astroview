@@ -1,4 +1,5 @@
-<<<<<<< HEAD
+build
+
 # C++ objects and libs
 *.slo
 *.lo
@@ -12,7 +13,6 @@
 *.dylib
 
 # Qt-es
-=======
 # ------------------------------------
 # CS 1230 gitignore
 # ------------------------------------
@@ -50,7 +50,6 @@ CMakeLists.txt.user*
 # Mysterious Qt Things (May Be Obsolete)
 # ------------------------------------
 
->>>>>>> old/main
 object_script.*.Release
 object_script.*.Debug
 *_plugin_import.cpp
@@ -72,7 +71,6 @@ Makefile*
 *.qm
 *.prl
 
-<<<<<<< HEAD
 # Qt unit tests
 target_wrapper.*
 
@@ -93,7 +91,6 @@ compile_commands.json
 *creator.user*
 
 *_qmlcache.qrc
-=======
 *.autosave
 
 *.qmlproject.user
@@ -214,5 +211,3 @@ Thumbs.db
 # Binaries
 *.dll
 *.exe
-
->>>>>>> old/main

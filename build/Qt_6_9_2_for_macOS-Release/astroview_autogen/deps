@@ -1084,42 +1084,21 @@ astroview_autogen/timestamp: \
 	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/glm/vec3.hpp \
 	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/glm/vec4.hpp \
 	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/glm/vector_relational.hpp \
+	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/astrorender.cpp \
+	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/astrorender.h \
 	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/camera/camera.cpp \
 	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/camera/camera.h \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/glrenderer.cpp \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/glrenderer.h \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/light.h \
 	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/main.cpp \
 	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/mainwindow.cpp \
 	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/mainwindow.h \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/realtime.cpp \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/realtime.h \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/settings.cpp \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/settings.h \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shaderloader.h \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Cone.cpp \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Cone.h \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Cube.cpp \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Cube.h \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Cylinder.cpp \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Cylinder.h \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Sphere.cpp \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Sphere.h \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Tet.cpp \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Tet.h \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Triangle.cpp \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Triangle.h \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/shapes.h \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/utils/aspectratiowidget/aspectratiowidget.hpp \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/utils/objparser.cpp \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/utils/objparser.h \
+	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/utils/scene.cpp \
+	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/utils/scene.h \
 	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/utils/scenedata.h \
 	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/utils/scenefilereader.cpp \
 	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/utils/scenefilereader.h \
 	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/utils/sceneparser.cpp \
 	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/utils/sceneparser.h \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/utils/shapeloader.cpp \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/utils/shapeloader.h \
+	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/utils/shaderloader.h \
 	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtCore.framework/Versions/A/Headers/QElapsedTimer \
 	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtCore.framework/Versions/A/Headers/QTime \
 	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtCore.framework/Versions/A/Headers/QTimer \
@@ -1291,26 +1270,15 @@ astroview_autogen/timestamp: \
 	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtOpenGLWidgets.framework/Versions/A/Headers/qopenglwidget.h \
 	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtOpenGLWidgets.framework/Versions/A/Headers/qtopenglwidgetsexports.h \
 	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtOpenGLWidgets.framework/Versions/A/Headers/qtopenglwidgetsglobal.h \
-	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/QBoxLayout \
 	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/QCheckBox \
 	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/QDoubleSpinBox \
 	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/QMainWindow \
-	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/QPushButton \
-	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/QSlider \
-	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/QSpinBox \
 	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/QWidget \
 	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/qabstractbutton.h \
-	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/qabstractslider.h \
 	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/qabstractspinbox.h \
-	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/qboxlayout.h \
 	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/qcheckbox.h \
-	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/qgridlayout.h \
-	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/qlayout.h \
-	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/qlayoutitem.h \
 	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/qmainwindow.h \
-	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/qpushbutton.h \
 	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/qsizepolicy.h \
-	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/qslider.h \
 	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/qspinbox.h \
 	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/qtabwidget.h \
 	/Users/o_alex_t/Qt/6.9.2/macos/lib/QtWidgets.framework/Versions/A/Headers/qtwidgets-config.h \
