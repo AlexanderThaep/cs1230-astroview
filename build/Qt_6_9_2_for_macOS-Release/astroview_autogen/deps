@@ -1086,9 +1086,6 @@ astroview_autogen/timestamp: \
 	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/glm/vector_relational.hpp \
 	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/camera/camera.cpp \
 	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/camera/camera.h \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/glrenderer.cpp \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/glrenderer.h \
-	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/light.h \
 	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/main.cpp \
 	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/mainwindow.cpp \
 	/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/mainwindow.h \

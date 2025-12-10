@@ -72,7 +72,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "astroview::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-astroview-Release-542a6182efa2e7f89567.json",
+					"jsonFile" : "target-astroview-Release-d6b487b55158a0ec0a1e.json",
 					"name" : "astroview",
 					"projectIndex" : 0
 				},
@@ -93,7 +93,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "astroview_other_files::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-astroview_other_files-Release-9ed3efecc70b5fcfbb65.json",
+					"jsonFile" : "target-astroview_other_files-Release-c2689adcc1d373ee78ad.json",
 					"name" : "astroview_other_files",
 					"projectIndex" : 0
 				}

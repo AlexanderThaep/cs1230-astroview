@@ -632,18 +632,6 @@
 			null
 		],
 		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/glrenderer.h",
-			"MU",
-			"UVLADIE3JM/moc_glrenderer.cpp",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/light.h",
-			"MU",
-			"UVLADIE3JM/moc_light.cpp",
-			null
-		],
-		[
 			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/mainwindow.h",
 			"MU",
 			"UVLADIE3JM/moc_mainwindow.cpp",
@@ -828,11 +816,6 @@
 	[
 		[
 			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/camera/camera.cpp",
-			"MU",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/glrenderer.cpp",
 			"MU",
 			null
 		],

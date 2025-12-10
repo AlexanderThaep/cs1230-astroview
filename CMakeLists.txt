@@ -25,9 +25,6 @@ include_directories(src)
 # Specifies .cpp and .h files to be passed to the compiler
 add_executable(${PROJECT_NAME}
     src/main.cpp
-    src/glrenderer.h
-    src/glrenderer.cpp
-
     src/mainwindow.h
     src/mainwindow.cpp
 
@@ -37,7 +34,6 @@ add_executable(${PROJECT_NAME}
     src/utils/aspectratiowidget/aspectratiowidget.hpp
     src/utils/scenedata.h
     src/shaderloader.h
-    src/light.h
 
     src/realtime.h
     src/realtime.cpp
@@ -76,6 +72,8 @@ qt_add_resources(${PROJECT_NAME} "Resources"
   PREFIX
   "/"
   FILES
+  resources/shaders/default.vert
+  resources/shaders/default.frag
   resources/shaders/phong.vert
   resources/shaders/phong.frag
   resources/shaders/tonemap.vert
