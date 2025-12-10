@@ -331,7 +331,7 @@ rayState RK4Step(rayState ray_state, float dt, vec3 bh_pos, float bh_r) {
     return next_ray_state;
 }
 
-float marchRay(vec3 ro, vec3 rd, out vec3 hitPos, out int hitShape)
+float marchRay(vec3 ro, vec3 rd, out vec3 hitPos, out int hitShape, out bool inside)
 {
     const float MAX_DIST = 100.0;
     const float EPS = 0.0005;
@@ -352,9 +352,11 @@ float marchRay(vec3 ro, vec3 rd, out vec3 hitPos, out int hitShape)
             vec2 res = sceneSDF(p);
             float d = res.x;
 
-            if (d < EPS) {
+            if (abs(d) < EPS) {
                 hitPos = p;
                 hitShape = int(res.y);
+
+                inside = d < 0;
 
                 // Linear approx in short distances
                 return t;
@@ -380,7 +382,7 @@ float marchRay(vec3 ro, vec3 rd, out vec3 hitPos, out int hitShape)
 
             if (t > MAX_DIST) break;
 
-            if (length(ray_state.ray_pos - bh_pos) < bh_r * 1.1) break;
+            if (length(ray_state.ray_pos - bh_pos) < bh_r * 1.3) break;
 
             float step = max(EPS, d * 0.7 / LIPSCHITZ_C);
             vec3 prev_pos = ray_state.ray_pos;
@@ -593,12 +595,17 @@ void main() {
     // Ray march
     vec3 hitPos;
     int shapeIndex;
-    marchRay(ro, rd.xyz, hitPos, shapeIndex);
+    bool inside;
+    marchRay(ro, rd.xyz, hitPos, shapeIndex, inside);
 
     if (shapeIndex != -1) {
-       vec3 N = estimateNormal(hitPos);
-       vec3 color = phongLighting(hitPos, N, shapeIndex);
-       fragColor = vec4(color, 1.0);
+        vec3 N = estimateNormal(hitPos);
+        if (inside) {
+            N = -N;
+        }
+
+        vec3 color = phongLighting(hitPos, N, shapeIndex);
+        fragColor = vec4(color, 1.0);
     } else {
         fragColor = vec4(vec3(0.0), 1.0);
     }
