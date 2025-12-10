@@ -626,21 +626,15 @@
 	"HEADERS" : 
 	[
 		[
+			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/astrorender.h",
+			"MU",
+			"UVLADIE3JM/moc_astrorender.cpp",
+			null
+		],
+		[
 			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/camera/camera.h",
 			"MU",
 			"I2NATBFSMB/moc_camera.cpp",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/glrenderer.h",
-			"MU",
-			"UVLADIE3JM/moc_glrenderer.cpp",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/light.h",
-			"MU",
-			"UVLADIE3JM/moc_light.cpp",
 			null
 		],
 		[
@@ -650,75 +644,9 @@
 			null
 		],
 		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/realtime.h",
+			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/utils/scene.h",
 			"MU",
-			"UVLADIE3JM/moc_realtime.cpp",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/settings.h",
-			"MU",
-			"UVLADIE3JM/moc_settings.cpp",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shaderloader.h",
-			"MU",
-			"UVLADIE3JM/moc_shaderloader.cpp",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Cone.h",
-			"MU",
-			"2S5AI7NIVA/moc_Cone.cpp",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Cube.h",
-			"MU",
-			"2S5AI7NIVA/moc_Cube.cpp",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Cylinder.h",
-			"MU",
-			"2S5AI7NIVA/moc_Cylinder.cpp",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Sphere.h",
-			"MU",
-			"2S5AI7NIVA/moc_Sphere.cpp",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Tet.h",
-			"MU",
-			"2S5AI7NIVA/moc_Tet.cpp",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Triangle.h",
-			"MU",
-			"2S5AI7NIVA/moc_Triangle.cpp",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/shapes.h",
-			"MU",
-			"2S5AI7NIVA/moc_shapes.cpp",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/utils/aspectratiowidget/aspectratiowidget.hpp",
-			"MU",
-			"OWQMYEJWPR/moc_aspectratiowidget.cpp",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/utils/objparser.h",
-			"MU",
-			"VSCBVMNR7M/moc_objparser.cpp",
+			"VSCBVMNR7M/moc_scene.cpp",
 			null
 		],
 		[
@@ -740,9 +668,9 @@
 			null
 		],
 		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/utils/shapeloader.h",
+			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/utils/shaderloader.h",
 			"MU",
-			"VSCBVMNR7M/moc_shapeloader.cpp",
+			"VSCBVMNR7M/moc_shaderloader.cpp",
 			null
 		]
 	],
@@ -827,12 +755,12 @@
 	"SOURCES" : 
 	[
 		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/camera/camera.cpp",
+			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/astrorender.cpp",
 			"MU",
 			null
 		],
 		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/glrenderer.cpp",
+			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/camera/camera.cpp",
 			"MU",
 			null
 		],
@@ -847,47 +775,7 @@
 			null
 		],
 		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/realtime.cpp",
-			"MU",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/settings.cpp",
-			"MU",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Cone.cpp",
-			"MU",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Cube.cpp",
-			"MU",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Cylinder.cpp",
-			"MU",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Sphere.cpp",
-			"MU",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Tet.cpp",
-			"MU",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/shapes/Triangle.cpp",
-			"MU",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/utils/objparser.cpp",
+			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/utils/scene.cpp",
 			"MU",
 			null
 		],
@@ -898,11 +786,6 @@
 		],
 		[
 			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/utils/sceneparser.cpp",
-			"MU",
-			null
-		],
-		[
-			"/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/src/utils/shapeloader.cpp",
 			"MU",
 			null
 		]
