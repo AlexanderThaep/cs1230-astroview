@@ -1,9 +1,0 @@
-/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/build/Qt_6_9_2_for_macOS-Release/CMakeFiles/astroview.dir
-/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/build/Qt_6_9_2_for_macOS-Release/CMakeFiles/astroview_other_files.dir
-/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/build/Qt_6_9_2_for_macOS-Release/CMakeFiles/StaticGLEW.dir
-/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/build/Qt_6_9_2_for_macOS-Release/CMakeFiles/edit_cache.dir
-/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/build/Qt_6_9_2_for_macOS-Release/CMakeFiles/rebuild_cache.dir
-/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/build/Qt_6_9_2_for_macOS-Release/CMakeFiles/astroview_autogen_timestamp_deps.dir
-/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/build/Qt_6_9_2_for_macOS-Release/CMakeFiles/astroview_autogen.dir
-/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/build/Qt_6_9_2_for_macOS-Release/CMakeFiles/StaticGLEW_autogen_timestamp_deps.dir
-/Users/o_alex_t/Documents/Brown/CS1230/cs1230-astroview/build/Qt_6_9_2_for_macOS-Release/CMakeFiles/StaticGLEW_autogen.dir
