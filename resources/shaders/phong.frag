@@ -24,7 +24,7 @@ const int MAX_LIGHTS = 8;
 uniform SceneLightData lights[MAX_LIGHTS];
 uniform int numLights;
 
-const int MAX_SHAPES = 8;
+const int MAX_SHAPES = 16;
 uniform SceneShapeData shapes[MAX_SHAPES];
 uniform int numShapes;
 
@@ -82,27 +82,21 @@ float cylinderSDF(vec3 p)
 // Apex at y=+0.5, base at y=-0.5
 float coneSDF(vec3 p)
 {
-    // Shift so apex at +0.5, base at -0.5
-      p.y += 0.5;
+    float shifted_y = p.y - 0.5f;
 
-      float radius = 0.5;
-      float height = 1.0;
+    float r_shifted = pow(pow(p.x, 2.f) + pow(p.z, 2.f), 0.5f);
+    vec2 base = vec2(0.5f, -1.f);
+    vec2 pos_rh = vec2(r_shifted, shifted_y);
 
-      // c = (sinθ, cosθ)
-      vec2 c = vec2(radius / height, sqrt(1.0 - pow(radius / height, 2.0)));
+    vec2 a = pos_rh - base * clamp(dot(pos_rh, base) / dot(base, base), 0.f, 1.f);
+    float clamped_r = clamp(pos_rh.x / base.x, 0.f, 1.f);
+    vec2 b = pos_rh - base * vec2(clamped_r, 1.f);
 
-      vec2 q = height *vec2(c.x/c.y,-1.0);
+    float d = min(dot(a, a), dot(b, b));
+    float s = max(pos_rh.y * base.x - pos_rh.x * base.y, base.y - pos_rh.y);
 
-       vec2 w = vec2( length(p.xz), p.y );
-       vec2 a = w - q*clamp( dot(w,q)/dot(q,q), 0.0, 1.0 );
-       vec2 b = w - q*vec2( clamp( w.x/q.x, 0.0, 1.0 ), 1.0 );
-       float k = sign( q.y );
-       float d = min(dot( a, a ),dot(b, b));
-       float s = max( k*(w.x*q.y-w.y*q.x),k*(w.y-q.y)  );
-       return sqrt(d)*sign(s);
-
+    return pow(d, 0.5f) * sign(s);
 }
-
 
 // Mandel buld fractral
 float mandelbulbDE(vec3 pos)
@@ -204,6 +198,14 @@ float sphereTorusSDF(vec3 p)
     return min(sphere, t);
 }
 
+float getMaxScaleFactor(mat4 ctm_inv) {
+    float scaleX = length(vec3(ctm_inv[0]));
+    float scaleY = length(vec3(ctm_inv[1]));
+    float scaleZ = length(vec3(ctm_inv[2]));
+
+    return max(scaleX, max(scaleY, scaleZ));
+}
+
 vec2 sceneSDF(vec3 p)
 {
     float minDist = 1e9;
@@ -243,6 +245,8 @@ vec2 sceneSDF(vec3 p)
                 break;
         }
 
+        d = d / getMaxScaleFactor(shapes[i].invCTM);
+
         if (d < minDist) {
             minDist = d;
             shapeIndex = i;
@@ -256,7 +260,7 @@ vec2 sceneSDF(vec3 p)
 //Estimates the normals for lighting calculation
 vec3 estimateNormal(vec3 p)
 {
-    float e = 0.0005;
+    float e = 0.0001;
 
     return normalize(vec3(
         sceneSDF(p + vec3(e,0,0)).x -
@@ -268,11 +272,105 @@ vec3 estimateNormal(vec3 p)
     ));
 }
 
+/*
+NOTE: we need to implement the function such that we know what shape it hits,
+    and so that SceneSDF gives the distance to the closest shape. this way, we can compute
+    lighting. Also, we need to pass the black hole parameters as uniforms to the shader.
+
+struct rayState {
+    vec3 ray_pos;
+    vec3 ray_vel;
+};
+
+vec3 get_accel(vec3 r, vec3 v, float bh_r) {
+    vec3 h = cross(r, v);
+
+    float r_len = length(r);
+    float h_factor = -1.5 * bh_r * dot(h, h);
+    vec3 a = r * (h_factor / pow(r_len, 5));
+
+    return a;
+}
+
+rayState RK4Step(rayState ray_state, float dt, vec3 bh_pos, float bh_r) {
+    vec3 r_t = ray_state.ray_pos - bh_pos;
+    vec3 v_t = ray_state.ray_vel;
+
+    // k factors and resulting interpolations. Note k_1r = v_t, k_2r = v_1_2...
+    vec3 k_1v = get_accel(r_t, v_t, bh_r);
+    vec3 r_1_2 = r_t + v_t * dt / 2.f;
+    vec3 v_1_2 = v_t + k_1v * dt / 2.f;
+
+    vec3 k_2v = get_accel(r_1_2, v_1_2, bh_r);
+    vec3 r_2_3 = r_1_2 + v_1_2 * dt / 2.f;
+    vec3 v_2_3 = v_1_2 + k_2v * dt / 2.f;
+
+    vec3 k_3v = get_accel(r_2_3, v_2_3, bh_r);
+    vec3 r_3_4 = r_2_3 + v_2_3 * dt;
+    vec3 v_3_4 = v_2_3 + k_3v * dt;
+
+    vec3 k_4v = get_accel(r_3_4, v_3_4, bh_r);
+
+    r_t += dt / 6.f * (v_t + 2.f * v_1_2 + 2.f * v_2_3 + v_3_4);
+    v_t += dt / 6.f * (k_1v + 2.f * k_2v + 2.f * k_3v + k_4v);
+
+    rayState next_ray_state;
+    next_ray_state.ray_pos = r_t + bh_pos;
+    next_ray_state.ray_vel = v_t;
+
+    return next_ray_state;
+}
+
+float marchRay(vec3 ro, vec3 rd, out vec3 hitPos, out int hitShape)
+{
+    vec3 bh_pos = vec3(0.f, 0.f, 0.f);
+    float bh_r = 0.5;
+    const float MAX_DIST = 100.0;
+    const float EPS = 0.0005;
+    const int MAX_STEPS = 1000;
+    const float LIPSCHITZ_C = 1.5;
+
+    rayState ray_state;
+    ray_state.ray_pos = ro;
+    ray_state.ray_vel = rd;
+
+    float t = 0.0;
+    hitShape = -1;
+
+    for (int i = 0; i < MAX_STEPS; i++) {
+        vec2 res = sceneSDF(ray_state.ray_pos);
+        float d = res.x;
+
+        if (d < EPS) {
+            hitPos = ray_state.ray_pos;
+            hitShape = int(res.y);
+
+            // Linear approx in short distances
+            return t;
+        }
+
+        if (t > MAX_DIST) break;
+
+        if (length(ray_state.ray_pos - bh_pos) < bh_r * 1.1) break;
+
+        float step = max(EPS, d * 0.7 / LIPSCHITZ_C);
+        vec3 prev_pos = ray_state.ray_pos;
+        ray_state = RK4Step(ray_state, step, bh_pos, bh_r);
+
+        t += length(prev_pos - ray_state.ray_pos);
+    }
+
+    hitShape = -1;
+    hitPos = ro + rd * t;
+    return t;
+}
+*/
+
 float marchRay(vec3 ro, vec3 rd, out vec3 hitPos, out int hitShape)
 {
     const float MAX_DIST = 100.0;
     const float EPS = 0.0005;
-    const int MAX_STEPS = 350;
+    const int MAX_STEPS = 1000;
 
     float t = 0.0;
     hitShape = -1;   // default: no hit

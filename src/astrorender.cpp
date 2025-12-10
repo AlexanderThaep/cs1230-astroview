@@ -208,7 +208,7 @@ void AstroRender::uploadLights(GLuint shader) {
 
 void AstroRender::uploadShapes(GLuint shader)
 {
-    int numShapes = std::min((int)m_scene.renderData.shapes.size(), 8);
+    int numShapes = std::min((int)m_scene.renderData.shapes.size(), 16);
     // std::cout << "Will upload " << numShapes << " shapes " << std::endl;
 
     glUniform1i(glGetUniformLocation(shader, "numShapes"), numShapes);
