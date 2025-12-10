@@ -345,18 +345,18 @@
 				1,
 				3,
 				5,
-				11,
-				13,
-				15,
-				17,
-				19,
-				21,
-				23,
-				25,
-				27,
-				29,
-				31,
-				33,
+				10,
+				12,
+				14,
+				16,
+				18,
+				20,
+				22,
+				24,
+				26,
+				28,
+				30,
+				32,
 				35
 			]
 		}
@@ -364,11 +364,11 @@
 	"dependencies" : 
 	[
 		{
-			"backtrace" : 0,
-			"id" : "astroview_autogen::@6890427a1f51a3e7e1df"
+			"id" : "astroview_autogen_timestamp_deps::@6890427a1f51a3e7e1df"
 		},
 		{
-			"id" : "astroview_autogen_timestamp_deps::@6890427a1f51a3e7e1df"
+			"backtrace" : 0,
+			"id" : "astroview_autogen::@6890427a1f51a3e7e1df"
 		},
 		{
 			"backtrace" : 2,
@@ -481,18 +481,18 @@
 				1,
 				3,
 				5,
-				11,
-				13,
-				15,
-				17,
-				19,
-				21,
-				23,
-				25,
-				27,
-				29,
-				31,
-				33,
+				10,
+				12,
+				14,
+				16,
+				18,
+				20,
+				22,
+				24,
+				26,
+				28,
+				30,
+				32,
 				35
 			]
 		},
@@ -506,25 +506,25 @@
 				7,
 				8,
 				9,
-				10,
-				12,
-				14,
-				16,
-				18,
-				20,
-				22,
-				24,
-				26,
-				28,
-				30,
-				32,
-				34
+				11,
+				13,
+				15,
+				17,
+				19,
+				21,
+				23,
+				25,
+				27,
+				29,
+				31,
+				33
 			]
 		},
 		{
 			"name" : "",
 			"sourceIndexes" : 
 			[
+				34,
 				36
 			]
 		},
@@ -587,11 +587,6 @@
 		{
 			"backtrace" : 1,
 			"path" : "src/shaderloader.h",
-			"sourceGroupIndex" : 1
-		},
-		{
-			"backtrace" : 1,
-			"path" : "src/light.h",
 			"sourceGroupIndex" : 1
 		},
 		{
@@ -730,6 +725,11 @@
 			"backtrace" : 1,
 			"path" : "src/utils/shapeloader.h",
 			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"path" : ".gitignore",
+			"sourceGroupIndex" : 2
 		},
 		{
 			"backtrace" : 28,
