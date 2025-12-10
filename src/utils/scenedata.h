@@ -7,8 +7,8 @@
 
 // Enum of the types of virtual lights that might be in the scene
 enum class LightType {
-    LIGHT_POINT,
     LIGHT_DIRECTIONAL,
+    LIGHT_POINT,
     LIGHT_SPOT,
 };
 
@@ -18,7 +18,10 @@ enum class PrimitiveType {
     PRIMITIVE_CONE,
     PRIMITIVE_CYLINDER,
     PRIMITIVE_SPHERE,
-    PRIMITIVE_SDF,
+    PRIMITIVE_MANDELBULB,
+    PRIMITIVE_MENGER,
+    PRIMITIVE_JULIA,
+    PRIMITIVE_SPHERE_TORUS,
     PRIMITIVE_SBH
 };
 

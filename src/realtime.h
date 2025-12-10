@@ -16,8 +16,8 @@
 #include <unordered_map>
 
 #define MOVEMENT_SPEED  5.0f
-#define Y_ROTATION_SENS 0.01f
-#define X_ROTATION_SENS 0.01f
+#define Y_ROTATION_SENS 0.005f
+#define X_ROTATION_SENS 0.005f
 #define LOD_MIN_PERCENT 0.10f
 
 class Realtime : public QOpenGLWidget
@@ -75,4 +75,6 @@ private:
 
     // Scene camera
     Camera *m_cam;
+    int m_deltaX;
+    int m_deltaY;
 };

@@ -17,8 +17,14 @@ int main(int argc, char *argv[])
     fmt.setProfile(QSurfaceFormat::CoreProfile);
     QSurfaceFormat::setDefaultFormat(fmt);
 
+    std::string sceneFile;
+
+    if (argc > 1) {
+        sceneFile = argv[1]; // use command line argument if provided
+    }
+
     MainWindow w;
-    w.initialize();
+    w.initialize(sceneFile);
     w.resize(800, 600);
     w.show();
 

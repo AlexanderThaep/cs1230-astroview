@@ -64,12 +64,7 @@ void populateRenderData(glm::mat4 ctm, SceneNode *prevNode, RenderData &renderDa
             .primitive = *p,
             .ctm = ctm,
             .invCTM = invCTM,
-            .invCTMT = invCTMT,
-            .vertexCount = 0,
-            .param1 = 1,
-            .param2 = 1,
-            .vbo = 0,
-            .vao = 0
+            .invCTMT = invCTMT
         };
 
         d.worldPos = ctm * glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);

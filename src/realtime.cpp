@@ -61,6 +61,7 @@ void Realtime::initializeGL()
 
     m_timer = startTimer(1000 / 60);
     m_elapsedTimer.start();
+    m_defaultFBO = 2;
 
     // Initializing GL.
     // GLEW (GL Extension Wrangler) provides access to OpenGL functions.
@@ -70,6 +71,8 @@ void Realtime::initializeGL()
         std::cerr << "Error while initializing GL: " << glewGetErrorString(err) << std::endl;
     }
     std::cout << "Initialized GL: Version " << glewGetString(GLEW_VERSION) << std::endl;
+
+    if (!settings.sceneFilePath.empty()) sceneChanged();
 
     // Allows OpenGL to draw objects appropriately on top of one another
     glDisable(GL_DEPTH_TEST);
@@ -88,12 +91,16 @@ void Realtime::initializeGL()
                                                          ":/resources/shaders/tonemap.frag");
 
     // Fullscreen quad: position XY, uv
-    float quadVertices[] = {// pos      // uv
-                            -1.0f, -1.0f, 0.0f,  0.0f, 1.0f, -1.0f,
-                            1.0f,  0.0f,  -1.0f, 1.0f, 0.0f, 1.0f,
+    float quadVertices[] = {
+        // pos      // uv
+        -1.0f, -1.0f,  0.0f, 0.0f,
+        1.0f, -1.0f,  1.0f, 0.0f,
+        -1.0f,  1.0f,  0.0f, 1.0f,
 
-                            -1.0f, 1.0f,  0.0f,  1.0f, 1.0f, -1.0f,
-                            1.0f,  0.0f,  1.0f,  1.0f, 1.0f, 1.0f};
+        -1.0f,  1.0f,  0.0f, 1.0f,
+        1.0f, -1.0f,  1.0f, 0.0f,
+        1.0f,  1.0f,  1.0f, 1.0f
+    };
 
     glGenVertexArrays(1, &m_quadVAO);
     glGenBuffers(1, &m_quadVBO);
@@ -121,8 +128,7 @@ void Realtime::initializeGL()
     // Set tonemap shader sampler once
     glUseProgram(m_tonemap_shader);
     GLint loc = glGetUniformLocation(m_tonemap_shader, "uHDRTexture");
-    if (loc >= 0)
-        glUniform1i(loc, 0);
+    if (loc >= 0) glUniform1i(loc, 0);
     glUseProgram(0);
 }
 
@@ -130,18 +136,9 @@ void Realtime::initializeGL()
 void Realtime::createHDRFramebuffer(int w, int h)
 {
     // delete old resources if they exist
-    if (m_hdrColorTex) {
-        glDeleteTextures(1, &m_hdrColorTex);
-        m_hdrColorTex = 0;
-    }
-    if (m_hdrDepthRBO) {
-        glDeleteRenderbuffers(1, &m_hdrDepthRBO);
-        m_hdrDepthRBO = 0;
-    }
-    if (m_hdrFBO) {
-        glDeleteFramebuffers(1, &m_hdrFBO);
-        m_hdrFBO = 0;
-    }
+    if (m_hdrColorTex) { glDeleteTextures(1, &m_hdrColorTex); m_hdrColorTex = 0; }
+    if (m_hdrDepthRBO) { glDeleteRenderbuffers(1, &m_hdrDepthRBO); m_hdrDepthRBO = 0; }
+    if (m_hdrFBO)      { glDeleteFramebuffers(1, &m_hdrFBO); m_hdrFBO = 0; }
 
     m_screen_width = w;
     m_screen_height = h;
@@ -149,15 +146,7 @@ void Realtime::createHDRFramebuffer(int w, int h)
     // Create float color texture (HDR)
     glGenTextures(1, &m_hdrColorTex);
     glBindTexture(GL_TEXTURE_2D, m_hdrColorTex);
-    glTexImage2D(GL_TEXTURE_2D,
-                 0,
-                 GL_RGBA16F,
-                 m_screen_width,
-                 m_screen_height,
-                 0,
-                 GL_RGBA,
-                 GL_FLOAT,
-                 nullptr);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, m_screen_width, m_screen_height, 0, GL_RGBA, GL_FLOAT, nullptr);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     // Clamp to edge to avoid wrap seams
@@ -196,40 +185,18 @@ void Realtime::renderSceneHDR()
     glUseProgram(m_phong_shader);
 
     // Upload shape information
-    int shape = 0;
-    float shapeZoomMultiplier = 1.0f;
-    glUniform1i(glGetUniformLocation(m_phong_shader, "uShape"), shape);
-
-    // Upload camera uniforms
-    GLuint locView = glGetUniformLocation(m_phong_shader, "uView");
-    glUniformMatrix4fv(locView, 1, GL_FALSE, &m_cam->getViewMatrix()[0][0]);
-
-    GLuint locProj = glGetUniformLocation(m_phong_shader, "uProj");
-    glUniformMatrix4fv(locProj, 1, GL_FALSE, &m_cam->getProjectionMatrix()[0][0]);
-
-    // Upload camera pos for shaders
-    glm::vec3 camPos = glm::vec3(glm::inverse(m_cam->getViewMatrix()) * glm::vec4(0, 0, 0, 1));
-    camPos *= shapeZoomMultiplier;
-    GLuint locCam = glGetUniformLocation(m_phong_shader, "uCameraPos");
-    glUniform3fv(locCam, 1, &camPos[0]);
-
+    ShaderLoader::passShaderValues(m_phong_shader, m_render);
     ShaderLoader::passLightValues(m_phong_shader, m_render);
 
-    // with global coefficients
-    glUniform1f(glGetUniformLocation(m_phong_shader, "ka"), 0.5);
-    glUniform1f(glGetUniformLocation(m_phong_shader, "kd"), 0.5);
-    glUniform1f(glGetUniformLocation(m_phong_shader, "ks"), 0.5);
+    //Upload all other informatio: projection + view matrices, and camera pos
+    GLuint locView = glGetUniformLocation(m_phong_shader, "uView"); //view matrix
+    glUniformMatrix4fv(locView, 1, GL_FALSE, &m_cam->getViewMatrix()[0][0]);
+    GLuint locProj = glGetUniformLocation(m_phong_shader, "uProj"); //projection matrix
+    glUniformMatrix4fv(locProj, 1, GL_FALSE, &m_cam->getProjectionMatrix()[0][0]);
+    glm::vec3 camPos = m_cam->getPosition(); //camera pos
+    glUniform3f(glGetUniformLocation(m_phong_shader, "uCameraPos"), camPos.x, camPos.y, camPos.z);
 
-    //Write material coefficients
-    glm::vec3 mat_ambient = glm::vec3(0.15f, 0.25f, 0.35f);
-    glm::vec3 mat_diffuse = glm::vec3(0.6f, 0.95f, 1.0f);
-    glm::vec3 mat_specular = glm::vec3(1.0f, 1.0f, 1.0f);
-
-    glUniform3fv(glGetUniformLocation(m_phong_shader, "mat_ambient"), 1, &mat_ambient[0]);
-    glUniform3fv(glGetUniformLocation(m_phong_shader, "mat_diffuse"), 1, &mat_diffuse[0]);
-    glUniform3fv(glGetUniformLocation(m_phong_shader, "mat_specular"), 1, &mat_specular[0]);
-    glUniform1f(glGetUniformLocation(m_phong_shader, "shininess"), 1.0);
-
+    //Draw scene
     glBindVertexArray(m_quadVAO);
     glDrawArrays(GL_TRIANGLES, 0, 6);
     glBindVertexArray(0);
@@ -240,7 +207,7 @@ void Realtime::toneMapToScreen()
 {
     // Bind default framebuffer (screen)
     glBindFramebuffer(GL_FRAMEBUFFER, m_defaultFBO);
-    glViewport(0, 0, width() * m_devicePixelRatio, height() * m_devicePixelRatio);
+    glViewport(0, 0, size().width() * m_devicePixelRatio, size().height() * m_devicePixelRatio);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     glUseProgram(m_tonemap_shader);
@@ -261,8 +228,6 @@ void Realtime::toneMapToScreen()
 void Realtime::paintGL()
 {
     // Students: anything requiring OpenGL calls every frame should be done here
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
     if (!m_cam) return;
 
     renderSceneHDR();
@@ -280,6 +245,8 @@ void Realtime::resizeGL(int w, int h)
     // Students: anything requiring OpenGL calls when the program starts should be done here
 
     if (m_cam) m_cam->update(m_render.cameraData, aspectRatio(w, h));
+
+    createHDRFramebuffer(m_screen_width, m_screen_height);
 }
 
 void Realtime::sceneChanged()
@@ -294,6 +261,8 @@ void Realtime::sceneChanged()
         std::cerr << "Error loading scene: \"" << settings.sceneFilePath << "\"" << std::endl;
         return;
     }
+
+    std::cout << "Loaded scenefile: \"" << settings.sceneFilePath << "\"." << std::endl;
 
     m_render = data;
     updateShapes(m_render);
@@ -310,7 +279,6 @@ void Realtime::CameraSettingsChanged()
     if (m_cam) m_cam->update(m_render.cameraData, aspectRatio(size().width(), size().height()));
 
     this->makeCurrent();
-    updateShapes(m_render);
 
     update(); // asks for a PaintGL() call to occur
 }
@@ -318,7 +286,6 @@ void Realtime::CameraSettingsChanged()
 void Realtime::SceneSettingsChanged()
 {
     this->makeCurrent();
-    updateShapes(m_render);
 
     update(); // asks for a PaintGL() call to occur
 }
@@ -355,16 +322,9 @@ void Realtime::mouseMoveEvent(QMouseEvent *event)
     if (m_mouseDown) {
         int posX = event->position().x();
         int posY = event->position().y();
-        int deltaX = posX - m_prev_mouse_pos.x;
-        int deltaY = posY - m_prev_mouse_pos.y;
+        m_deltaX = posX - m_prev_mouse_pos.x;
+        m_deltaY = posY - m_prev_mouse_pos.y;
         m_prev_mouse_pos = glm::vec2(posX, posY);
-
-        // Use deltaX and deltaY here to rotate
-        if (m_cam && m_mouseDown) {
-            m_cam->rotate(m_render.cameraData, X_ROTATION_SENS * -deltaX, Y_ROTATION_SENS * -deltaY);
-        }
-
-        update(); // asks for a PaintGL() call to occur
     }
 }
 
@@ -383,18 +343,11 @@ void Realtime::timerEvent(QTimerEvent *event)
 
         if (m_keyMap[Qt::Key_Control] && !m_keyMap[Qt::Key_Space]) m_cam->moveVertical(m_render.cameraData, -MOVEMENT_SPEED * deltaTime);
         if (m_keyMap[Qt::Key_Space] && !m_keyMap[Qt::Key_Control]) m_cam->moveVertical(m_render.cameraData, MOVEMENT_SPEED * deltaTime);
-    }
 
-    if (settings.extraCredit1
-        && (m_keyMap[Qt::Key_W]
-        || m_keyMap[Qt::Key_D]
-        || m_keyMap[Qt::Key_S]
-        || m_keyMap[Qt::Key_A]
-        || m_keyMap[Qt::Key_Space]
-        || m_keyMap[Qt::Key_Control])) {
-
-        this->makeCurrent();
-        updateShapes(m_render);
+        // Use deltaX and deltaY here to rotate
+        if (m_mouseDown) {
+            m_cam->rotate(m_render.cameraData, X_ROTATION_SENS * -m_deltaX, Y_ROTATION_SENS * -m_deltaY);
+        }
     }
 
     update(); // asks for a PaintGL() call to occur

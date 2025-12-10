@@ -13,12 +13,7 @@ struct RenderShapeData {
     glm::mat3 invCTMT; 	// inverse ctm and transposed
 
     glm::vec3 worldPos; // World space position of the object
-    int vertexCount; 	// Number of individual verts
-    int param1; 		// Keep track of individual object tessellation params for optimization
-    int param2;			// Second tessellation param
-
-    GLuint vbo;
-    GLuint vao;
+    bool hasTexture;
 };
 
 // Struct which contains all the data needed to render a scene

@@ -3,6 +3,7 @@
 #include "GL/glew.h"
 #include "glm/gtc/type_ptr.hpp"
 #include <QFile>
+#include <QImage>
 #include <QTextStream>
 #include <camera/camera.h>
 #include <utils/sceneparser.h>
@@ -38,92 +39,106 @@ public:
     }
 
     static void passLightValues(GLuint shader, RenderData &rend) {
-        GLuint loc;
-        for (int i = 0; i < rend.lights.size(); i++) {
-            SceneLightData l = rend.lights[i];
-            std::string uniformName = "lights[" + std::to_string(i) + "]";
+        float ka = rend.globalData.ka;
+        float kd = rend.globalData.kd;
+        float ks = rend.globalData.ks;
 
-            loc = glGetUniformLocation(shader, (uniformName + ".pos").c_str());
-            glUniform3fv(loc, 1, glm::value_ptr(glm::vec3(l.pos)));
+        glUniform1f(glGetUniformLocation(shader, "ka"), ka);
+        glUniform1f(glGetUniformLocation(shader, "kd"), kd);
+        glUniform1f(glGetUniformLocation(shader, "ks"), ks);
 
-            loc = glGetUniformLocation(shader, (uniformName + ".dir").c_str());
-            glUniform3fv(loc, 1, glm::value_ptr(glm::vec3(l.dir)));
+        int numLights = std::fmin(rend.lights.size(), 8);
+        glUniform1i(glGetUniformLocation(shader, "numLights"), (GLint) numLights);
 
-            loc = glGetUniformLocation(shader, (uniformName + ".color").c_str());
-            glUniform3fv(loc, 1, glm::value_ptr(glm::vec3(l.color)));
+        for (int i = 0; i < numLights; i++) {
+            auto& light = rend.lights[i];
+            std::string prefix = "lights[" + std::to_string(i) + "].";
 
-            loc = glGetUniformLocation(shader, (uniformName + ".function").c_str());
-            glUniform3fv(loc, 1, glm::value_ptr(glm::vec3(l.function)));
-
-            loc = glGetUniformLocation(shader, (uniformName + ".penumbra").c_str());
-            glUniform1f(loc, l.penumbra);
-
-            loc = glGetUniformLocation(shader, (uniformName + ".angle").c_str());
-            glUniform1f(loc, l.angle);
-
-            loc = glGetUniformLocation(shader, (uniformName + ".type").c_str());
-            switch (rend.lights[i].type) {
-                case LightType::LIGHT_SPOT:
-                    glUniform1i(loc, 2);
-                    break;
-                case LightType::LIGHT_DIRECTIONAL:
-                    glUniform1i(loc, 1);
-                    break;
-                case LightType::LIGHT_POINT:
-                    glUniform1i(loc, 0);
-                    break;
-            }
-
+            glUniform1i(glGetUniformLocation(shader, (prefix + "type").c_str()), (int) light.type);
+            glUniform3f(glGetUniformLocation(shader, (prefix + "color").c_str()), light.color.r, light.color.g, light.color.b);
+            glUniform3f(glGetUniformLocation(shader, (prefix + "function").c_str()), light.function.x, light.function.y, light.function.z);
+            glUniform4f(glGetUniformLocation(shader, (prefix + "pos").c_str()), light.pos.x, light.pos.y, light.pos.z, light.pos.w);
+            glUniform4f(glGetUniformLocation(shader, (prefix + "dir").c_str()), light.dir.x, light.dir.y, light.dir.z, light.dir.w);
+            glUniform1f(glGetUniformLocation(shader, (prefix + "penumbra").c_str()), light.penumbra);
+            glUniform1f(glGetUniformLocation(shader, (prefix + "angle").c_str()), light.angle);
         }
-        loc = glGetUniformLocation(shader, "lightCount");
-        glUniform1i(loc, rend.lights.size());
     }
 
-    static void passShaderValues(GLuint shader, RenderShapeData &o, RenderData &rend, Camera *cam) {
-        GLuint loc;
-        // Task 6: pass in m_model as a uniform into the shader program
-        loc = glGetUniformLocation(shader, "model");
-        glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(o.ctm));
+    static void passShaderValues(GLuint shader, RenderData &rend) {
+        int numShapes = std::min((int) rend.shapes.size(), 16);
 
-        loc = glGetUniformLocation(shader, "inv_t_model");
-        glUniformMatrix3fv(loc, 1, GL_FALSE, glm::value_ptr(o.invCTMT));
+        // Now bind each texture that's available and set sampler mapping
+        GLint shapeTexUnitArray[8] = { 0 };
+        GLuint shapeTextures[8] = { 0 };
 
-        // Task 7: pass in m_view and m_proj
-        loc = glGetUniformLocation(shader, "view");
-        glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(cam->getViewMatrix()));
+        // Initialize to -1 or 0 — ensures well-defined values
+        for (int i = 0; i < 8; ++i) shapeTexUnitArray[i] = -1;
 
-        loc = glGetUniformLocation(shader, "proj");
-        glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(cam->getProjectionMatrix()));
+        for (int i = 0; i < numShapes; i++) {
+            if (shapeTextures[i] != 0) {
+                GLint unit = i; // GL_TEXTURE0 + i
+                shapeTexUnitArray[i] = unit;
 
-        loc = glGetUniformLocation(shader, "cam");
-        glUniform3fv(loc, 1, glm::value_ptr(cam->getPosition()));
+                glActiveTexture(GL_TEXTURE0 + unit);
+                glBindTexture(GL_TEXTURE_2D, shapeTextures[i]);
 
-        // Task 12: pass m_ka into the fragment shader as a uniform
-        loc = glGetUniformLocation(shader, "ka");
-        glUniform1f(loc, rend.globalData.ka);
+                // Also set the sampler uniform "uShapeTex[i]" to that unit
+                std::string name = "uShapeTex[" + std::to_string(i) + "]";
+                GLint loc = glGetUniformLocation(shader, name.c_str());
+                if (loc >= 0) glUniform1i(loc, unit);
+            }
+            const auto& shape = rend.shapes[i];
+            std::string base = "shapes[" + std::to_string(i) + "].";
 
-        // Task 13: pass light position and m_kd into the fragment shader as a uniform
-        loc = glGetUniformLocation(shader, "kd");
-        glUniform1f(loc, rend.globalData.kd);
+            // primitive type
+            glUniform1i(glGetUniformLocation(shader, (base + "primitive").c_str()), (GLuint) shape.primitive.type);
 
-        // Task 14: pass shininess, m_ks, and world-space camera position
-        loc = glGetUniformLocation(shader, "ks");
-        glUniform1f(loc, rend.globalData.ks);
+            // inverse CTM
+            glUniformMatrix4fv(glGetUniformLocation(shader, (base + "invCTM").c_str()), 1, GL_FALSE, &glm::inverse(shape.ctm)[0][0]);
 
-        loc = glGetUniformLocation(shader, "shininess");
-        glUniform1f(loc, o.primitive.material.shininess);
+            // material properties: ambient/diffuse/specular and shininess
+            glUniform3f(glGetUniformLocation(shader, (base + "ambient").c_str()),shape.primitive.material.cAmbient.r, shape.primitive.material.cAmbient.g, shape.primitive.material.cAmbient.b);
+            glUniform3f(glGetUniformLocation(shader, (base + "diffuse").c_str()),shape.primitive.material.cDiffuse.r, shape.primitive.material.cDiffuse.g, shape.primitive.material.cDiffuse.b);
+            glUniform3f(glGetUniformLocation(shader, (base + "specular").c_str()),shape.primitive.material.cSpecular.r, shape.primitive.material.cSpecular.g, shape.primitive.material.cSpecular.b);
+            glUniform1f(glGetUniformLocation(shader, (base + "shininess").c_str()),shape.primitive.material.shininess);
+            glUniform1f(glGetUniformLocation(shader, (base + "blend").c_str()),shape.primitive.material.blend);
+            glUniform1i(glGetUniformLocation(shader, (base + "hasTexture").c_str()),shape.hasTexture ? 1 : 0);
+        }
 
-        loc = glGetUniformLocation(shader, "diffuse");
-        glUniform4fv(loc, 1, glm::value_ptr(o.primitive.material.cDiffuse));
+        GLint locArray = glGetUniformLocation(shader, "uShapeTexUnits");
+        if (locArray >= 0) glUniform1iv(locArray, numShapes, shapeTexUnitArray);
 
-        loc = glGetUniformLocation(shader, "ambient");
-        glUniform4fv(loc, 1, glm::value_ptr(o.primitive.material.cAmbient));
-
-        loc = glGetUniformLocation(shader, "specular");
-        glUniform4fv(loc, 1, glm::value_ptr(o.primitive.material.cSpecular));
+        glUniform1i(glGetUniformLocation(shader, "numShapes"), numShapes);
     }
 
 private:
+    static GLuint loadTexture(const QString &filePath)
+    {
+        QImage img(filePath);
+        if (img.isNull()) {
+        qWarning("Failed to load texture: %s", qPrintable(filePath));
+        return 0;
+        }
+
+        img = img.convertToFormat(QImage::Format_RGBA8888); // ensure 4 channels
+
+        GLuint texID;
+        glGenTextures(1, &texID);
+        glBindTexture(GL_TEXTURE_2D, texID);
+
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width(), img.height(), 0,
+             GL_RGBA, GL_UNSIGNED_BYTE, img.bits());
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+        glBindTexture(GL_TEXTURE_2D, 0);
+        return texID;
+    }
+
     static GLuint createShader(GLenum shaderType, const char *filepath)
     {
         GLuint shaderID = glCreateShader(shaderType);
