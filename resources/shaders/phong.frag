@@ -281,15 +281,15 @@ vec2 sceneSDF(vec3 p)
 vec3 estimateNormal(vec3 p)
 {
     float e = 0.0001;
-    float d = sceneSDF(p).x;
 
-    vec3 N = normalize(vec3(
-        sceneSDF(p + vec3(e,0,0)).x - d,
-        sceneSDF(p + vec3(0,e,0)).x - d,
-        sceneSDF(p + vec3(0,0,e)).x - d
+    return normalize(vec3(
+        sceneSDF(p + vec3(e,0,0)).x -
+        sceneSDF(p - vec3(e,0,0)).x,
+        sceneSDF(p + vec3(0,e,0)).x -
+        sceneSDF(p - vec3(0,e,0)).x,
+        sceneSDF(p + vec3(0,0,e)).x -
+        sceneSDF(p - vec3(0,0,e)).x
     ));
-
-    return N;
 }
 
 /*
