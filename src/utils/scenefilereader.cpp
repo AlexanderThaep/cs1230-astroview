@@ -808,7 +808,7 @@ bool ScenefileReader::parsePrimitive(const QJsonObject &prim, SceneNode *node) {
     QStringList requiredFields = {"type"};
     QStringList optionalFields = {
         "meshFile", "ambient", "diffuse", "specular", "reflective", "transparent", "shininess", "ior",
-        "blend", "textureFile", "textureU", "textureV", "bumpMapFile", "bumpMapU", "bumpMapV"};
+        "blend", "useTime", "textureFile", "textureU", "textureV", "bumpMapFile", "bumpMapU", "bumpMapV"};
 
     QStringList allFields = requiredFields + optionalFields;
     for (auto field : prim.keys()) {
@@ -998,6 +998,15 @@ bool ScenefileReader::parsePrimitive(const QJsonObject &prim, SceneNode *node) {
         }
 
         mat.blend = (float)prim["blend"].toDouble();
+    }
+
+    if (prim.contains("useTime")) {
+        if (!prim["useTime"].isBool()) {
+            std::cout << "primitive useTime must be of type bool" << std::endl;
+            return false;
+        }
+
+        mat.useTime = (bool)prim["useTime"].toBool();
     }
 
     if (prim.contains("textureFile")) {

@@ -241,7 +241,7 @@ void MainWindow::onUploadFile()
                                                               .append(QDir::separator())
                                                               .append("scenefiles")
                                                               .append(QDir::separator())
-                                                              .append("realtime")
+                                                              .append("astroview")
                                                               .append(QDir::separator())
                                                               .append("required"),
                                                           tr("Scene Files (*.json)"));

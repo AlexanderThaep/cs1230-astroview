@@ -19,6 +19,7 @@ struct SceneShapeData {
     float shininess;   // material shininess
     float blend;
     bool hasTexture;
+    bool useTime;
 };
 
 struct rayState {
@@ -51,6 +52,8 @@ const int SPHERE_TORUS = 8;
 uniform int hasBH;
 uniform vec3 bh_pos;
 uniform float bh_r;
+
+uniform uint uFrameIndex;
 
 //Light type definitions
 const int LIGHT_DIRECTIONAL = 0;
@@ -275,15 +278,15 @@ vec2 sceneSDF(vec3 p)
 vec3 estimateNormal(vec3 p)
 {
     float e = 0.0001;
+    float d = sceneSDF(p).x;
 
-    return normalize(vec3(
-        sceneSDF(p + vec3(e,0,0)).x -
-        sceneSDF(p - vec3(e,0,0)).x,
-        sceneSDF(p + vec3(0,e,0)).x -
-        sceneSDF(p - vec3(0,e,0)).x,
-        sceneSDF(p + vec3(0,0,e)).x -
-        sceneSDF(p - vec3(0,0,e)).x
+    vec3 N = normalize(vec3(
+        sceneSDF(p + vec3(e,0,0)).x - d,
+        sceneSDF(p + vec3(0,e,0)).x - d,
+        sceneSDF(p + vec3(0,0,e)).x - d
     ));
+
+    return N;
 }
 
 /*
@@ -476,6 +479,18 @@ vec2 coneUV(vec3 p)
     return vec2(u, v);
 }
 
+// Rotate a UV coordinate around a center point
+vec2 rotateUV(vec2 uv, vec2 center, float angle) {
+    vec2 uvRel = uv - center;
+    float c = cos(angle);
+    float s = sin(angle);
+    uvRel = vec2(
+        uvRel.x * c - uvRel.y * s,
+        uvRel.x * s + uvRel.y * c
+    );
+    return uvRel + center;
+}
+
 vec3 computeDiffuse(vec3 pos, vec3 N, vec3 L, int shapeIndex) {
     float diff = max(dot(N, L), 0.0);
 
@@ -509,6 +524,12 @@ vec3 computeDiffuse(vec3 pos, vec3 N, vec3 L, int shapeIndex) {
         case CYLINDER:
             uv = cylinderUV(local);
             break;
+    }
+
+    if (shapes[shapeIndex].useTime) {
+        float speed = 0.01; // radians per frame
+        float angle = float(uFrameIndex) * speed;
+        uv = rotateUV(uv, vec2(0.0), angle);
     }
 
     texColor = texture(uShapeTex[shapeIndex], uv).rgb;
