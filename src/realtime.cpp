@@ -332,7 +332,7 @@ void Realtime::timerEvent(QTimerEvent *event)
 
         // Use deltaX and deltaY here to rotate
         if (m_mouseDown) {
-            m_cam->rotate(m_render.cameraData, X_ROTATION_SENS * -m_deltaX, Y_ROTATION_SENS * -m_deltaY);
+            m_cam->rotate(m_render.cameraData, X_ROTATION_SENS * -m_deltaX * deltaTime, Y_ROTATION_SENS * -m_deltaY * deltaTime);
         }
     }
 

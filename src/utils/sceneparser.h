@@ -24,12 +24,14 @@ struct RenderData {
     std::vector<SceneLightData> lights;
     std::vector<RenderShapeData> shapes;
 
-    GLint shapeTexUnitArray[32] = { 0 };
-    GLuint shapeTextures[32] = { 0 };
+    GLint shapeTexUnitArray[8] = { 0 };
+    GLuint shapeTextures[8] = { 0 };
 
     bool hasBH;
     glm::vec3 bh_pos;
     float bh_r;
+
+    uint64_t frameIndex;
 };
 
 class SceneParser {

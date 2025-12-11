@@ -71,18 +71,18 @@ public:
         for (int i = 0; i < 8; ++i) rend.shapeTexUnitArray[i] = -1;
 
         for (int i = 0; i < numShapes; i++) {
+            GLint unit = 0;
             if (rend.shapeTextures[i] != 0) {
-                GLint unit = i; // GL_TEXTURE0 + i
                 rend.shapeTexUnitArray[i] = unit;
+                unit = i; // GL_TEXTURE0 + i
 
                 glActiveTexture(GL_TEXTURE0 + unit);
                 glBindTexture(GL_TEXTURE_2D, rend.shapeTextures[i]);
-
-                // Also set the sampler uniform "uShapeTex[i]" to that unit
-                std::string name = "uShapeTex[" + std::to_string(i) + "]";
-                GLint loc = glGetUniformLocation(shader, name.c_str());
-                if (loc >= 0) glUniform1i(loc, unit);
             }
+
+            // Also set the sampler uniform "uShapeTex[i]" to that unit
+            std::string name = "uShapeTex[" + std::to_string(i) + "]";
+            glUniform1i(glGetUniformLocation(shader, name.c_str()), unit);
 
             const auto& shape = rend.shapes[i];
             std::string base = "shapes[" + std::to_string(i) + "].";
@@ -99,6 +99,7 @@ public:
             glUniform3f(glGetUniformLocation(shader, (base + "specular").c_str()),shape.primitive.material.cSpecular.r, shape.primitive.material.cSpecular.g, shape.primitive.material.cSpecular.b);
             glUniform1f(glGetUniformLocation(shader, (base + "shininess").c_str()),shape.primitive.material.shininess);
             glUniform1f(glGetUniformLocation(shader, (base + "blend").c_str()),shape.primitive.material.blend);
+            glUniform1i(glGetUniformLocation(shader, (base + "useTime").c_str()),shape.primitive.material.useTime ? 1 : 0);
             glUniform1i(glGetUniformLocation(shader, (base + "hasTexture").c_str()),shape.hasTexture ? 1 : 0);
         }
 
@@ -110,6 +111,9 @@ public:
         glUniform1i(glGetUniformLocation(shader, "hasBH"), rend.hasBH ? 1 : 0);
         glUniform3f(glGetUniformLocation(shader, "bh_pos"), rend.bh_pos.x, rend.bh_pos.y, rend.bh_pos.z);
         glUniform1f(glGetUniformLocation(shader, "bh_r"), rend.bh_r);
+
+        glUniform1ui(glGetUniformLocation(shader, "uFrameIndex"), rend.frameIndex);
+        rend.frameIndex++;
     }
 
     static void passCameraValues(GLuint shader, Camera &cam) {

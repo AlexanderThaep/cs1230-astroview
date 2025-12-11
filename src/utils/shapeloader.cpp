@@ -43,25 +43,29 @@ GLuint loadTexture(const QString &filePath)
 void updateShapes(RenderData &rend)
 {
     int i = 0;
-    for (RenderShapeData &o : rend.shapes) {
-        i = glm::min(7, i);
+    for (auto it = rend.shapes.begin(); it != rend.shapes.end(); /* no ++ */) {
+        RenderShapeData& o = *it;
+        i = glm::min(i, 7);
+
         QString texFile = QString::fromStdString(o.primitive.material.textureMap.filename);
         if (!texFile.isEmpty()) {
             rend.shapeTextures[i] = loadTexture(texFile);
             o.hasTexture = true;
-        } else
-            rend.shapeTextures[i] = 1;
+        } else {
+            rend.shapeTextures[i] = 0;
+            o.hasTexture = false;
+        }
 
-        switch (o.primitive.type) {
-        case PrimitiveType::PRIMITIVE_SBH:
+        if (o.primitive.type == PrimitiveType::PRIMITIVE_SBH) {
             rend.hasBH = true;
             rend.bh_pos = o.worldPos;
             rend.bh_r = glm::length(o.ctm[0]);
-            break;
-        default:
-            break;
+
+            it = rend.shapes.erase(it);    // returns next valid iterator
+            continue;                      // skip i++ since we erased
         }
 
+        it++;
         i++;
     }
 }

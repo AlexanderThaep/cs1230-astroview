@@ -93,6 +93,8 @@ bool SceneParser::parse(std::string filepath, RenderData &renderData)
     renderData.bh_pos = glm::vec3(0.0f);
     renderData.bh_r = 1.0f;
 
+    renderData.frameIndex = 0;
+
     populateRenderData(glm::mat4(1.0f), fileReader.getRootNode(), renderData);
 
     auto t1 = Clock::now();
