@@ -1,0 +1,197 @@
+{
+  "name": "root",
+  "globalData": {
+    "ambientCoeff": 0.5,
+    "diffuseCoeff": 0.5,
+    "specularCoeff": 0.5,
+    "transparentCoeff": 1
+  },
+  "cameraData": {
+    "position": [-4.0, 3.0, 10.0],
+    "up": [0.0, 1.0, 0.0],
+    "look": [-0.381919, 0.548375, -0.743924],
+    "heightAngle": 30.0
+  },
+  "groups": [
+    {
+      "lights": [
+        {
+          "type": "point",
+          "color": [0.5, 0.5, 0.5],
+          "attenuationCoeff": [1, 0, 0]
+        }
+      ],
+      "translate": [10, 10, 10]
+    },
+    {
+      "lights": [
+        {
+          "type": "point",
+          "color": [0.8, 0.4, 0.8],
+          "attenuationCoeff": [1, 0, 0]
+        }
+      ],
+      "translate": [-2, -2, 2]
+    },
+    {
+      "lights": [
+        {
+          "type": "point",
+          "color": [0.8, 0.4, 0.8],
+          "attenuationCoeff": [1, 0, 0]
+        }
+      ],
+      "translate": [4, 4, 4]
+    },
+    {
+      "name": "Star Skybox",
+      "groups": [
+        {
+          "translate": [-4, 3, 3],
+          "groups": [
+            {
+              "name": "Right Wall",
+              "translate": [8, 0, 0],
+              "scale": [0.1, 20, 20],
+              "primitives": [
+                {
+                  "type": "cube",
+                  "diffuse": [1, 1, 1],
+                  "specular": [0, 0, 0],
+                  "shininess": 1,
+                  "blend": 1.0,
+                  "textureFile": "textures/stars.jpg",
+                  "textureU": 1.0,
+                  "textureV": 1.0
+                }
+              ]
+            },
+            {
+              "name": "Left Wall",
+              "translate": [-8, 0, 0],
+              "scale": [0.1, 20, 20],
+              "primitives": [
+                {
+                  "type": "cube",
+                  "diffuse": [1, 1, 1],
+                  "specular": [0, 0, 0],
+                  "shininess": 1,
+                  "blend": 1.0,
+                  "textureFile": "textures/stars.jpg",
+                  "textureU": 1.0,
+                  "textureV": 1.0
+                }
+              ]
+            },
+            {
+              "name": "Front Wall",
+              "translate": [0, 0, 8],
+              "scale": [20, 20, 0.1],
+              "primitives": [
+                {
+                  "type": "cube",
+                  "diffuse": [1, 1, 1],
+                  "specular": [0, 0, 0],
+                  "shininess": 1,
+                  "blend": 1.0,
+                  "textureFile": "textures/stars.jpg",
+                  "textureU": 1.0,
+                  "textureV": 1.0
+                }
+              ]
+            },
+            {
+              "name": "Back Wall",
+              "translate": [0, 0, -8],
+              "scale": [20, 20, 0.1],
+              "primitives": [
+                {
+                  "type": "cube",
+                  "diffuse": [1, 1, 1],
+                  "specular": [0, 0, 0],
+                  "shininess": 1,
+                  "blend": 1.0,
+                  "textureFile": "textures/stars.jpg",
+                  "textureU": 1.0,
+                  "textureV": 1.0
+                }
+              ]
+            },
+            {
+              "name": "Ceiling",
+              "translate": [0, 10, 0],
+              "scale": [20, 0.1, 20],
+              "primitives": [
+                {
+                  "type": "cube",
+                  "diffuse": [1, 1, 1],
+                  "specular": [0, 0, 0],
+                  "shininess": 1,
+                  "blend": 1.0,
+                  "textureFile": "textures/stars.jpg",
+                  "textureU": 1.0,
+                  "textureV": 1.0
+                }
+              ]
+            },
+            {
+              "name": "Floor",
+              "translate": [0, -10, 0],
+              "scale": [20, 0.1, 20],
+              "primitives": [
+                {
+                  "type": "cube",
+                  "diffuse": [1, 1, 1],
+                  "specular": [0, 0, 0],
+                  "shininess": 1,
+                  "blend": 1.0,
+                  "textureFile": "textures/stars.jpg",
+                  "textureU": 1.0,
+                  "textureV": 1.0
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Textured Sphere",
+      "translate": [-5.91, 5.74, 6.28],
+      "scale": [1, 1, 1],
+      "primitives": [
+        {
+          "type": "sphere",
+          "diffuse": [1, 1, 1],
+          "specular": [1, 1, 1],
+          "shininess": 50,
+          "blend": 1.0,
+          "textureFile": "textures/earth.png"
+        }
+      ]
+    }, 
+    {
+      "name": "Point Light in Front of Sphere",
+      "lights": [
+        {
+          "type": "point",
+          "color": [0.8, 0.4, 0.8],
+          "attenuationCoeff": [1, 0, 0]
+        }
+      ],
+      "translate": [-5.528, 5.192, 6.976]
+    }, 
+    {
+      "name": "Point Light",
+      "lights": [
+        {
+          "type": "point",
+          "color": [1, 1.2, 0.8],
+          "attenuationCoeff": [1, 0, 0]
+        }
+      ],
+      "translate": [-12.101, 10.014, 5.892]
+    }
+    
+  ]
+}
